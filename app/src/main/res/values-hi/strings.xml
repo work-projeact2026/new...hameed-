@@ -1,0 +1,147 @@
+<resources>
+    <string name="app_name">SecureLens</string>
+    <string name="device_admin_description">आपकी गोपनीयता की रक्षा और सुरक्षा घटनाओं को लॉग करने के लिए विफल स्क्रीन अनलॉक प्रयासों की निगरानी करता है।</string>
+
+    <!-- Onboarding & Common -->
+    <string name="skip">छोड़ें</string>
+    <string name="skip_for_now">अभी छोड़ें</string>
+    <string name="continue_btn">जारी रखें</string>
+    <string name="get_started">शुरू करें</string>
+    <string name="not_now">अभी नहीं</string>
+    <string name="try_again">पुनः प्रयास करें</string>
+    <string name="save_preferences">प्राथमिकताएं सहेजें</string>
+    <string name="back">वापस</string>
+    <string name="cancel">रद्द करें</string>
+    <string name="delete">हटाएं</string>
+    <string name="rename">नाम बदलें</string>
+    <string name="export_copy">एक प्रति निर्यात करें</string>
+    <string name="save">सहेजें</string>
+    <string name="got_it">समझ गया</string>
+    <string name="go_to_app">ऐप पर जाएं</string>
+    <string name="understood">समझ गए</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">होम</string>
+    <string name="nav_devices">उपकरण</string>
+    <string name="nav_rooms">कमरे</string>
+    <string name="nav_settings">सेटिंग्स</string>
+
+    <!-- Onboarding Screens -->
+    <string name="onboarding_1_title">एक सुरक्षित स्थान यहाँ से शुरू होता है</string>
+    <string name="onboarding_1_sub">छिपे हुए कैमरों का पता लगाएं, अपनी गोपनीयता की रक्षा करें और हर जगह सुरक्षित महसूस करें।</string>
+    <string name="onboarding_2_title">जो छिपा है उसे खोजें</string>
+    <string name="onboarding_2_sub">व्यावहारिक ऑप्टिकल और नजदीकी डिवाइस टूल के साथ अपने परिवेश का निरीक्षण करें।</string>
+    <string name="onboarding_3_title">आस-पास के डिवाइस खोजें</string>
+    <string name="onboarding_3_sub">उपलब्ध एंड्रॉइड स्कैनिंग सुविधाओं का उपयोग करके वाई-फ़ाई और ब्लूटूथ उपकरणों की समीक्षा करें।</string>
+    <string name="onboarding_4_title">आपकी गोपनीयता महत्वपूर्ण है</string>
+    <string name="onboarding_4_sub">अपने फ़ोटो, रिकॉर्डिंग और सुरक्षा घटनाओं को एक निजी वॉल्ट में सुरक्षित रखें।</string>
+    
+    <string name="promo_title">अधिक उपकरण। अधिक नियंत्रण।</string>
+    <string name="promo_sub">उपलब्ध होने पर वैकल्पिक उन्नत सुविधाओं का अन्वेषण करें।</string>
+    <string name="promo_card_title">SecureLens प्रीमियम</string>
+    <string name="promo_card_desc">खरीदने से पहले योजनाओं और शर्तों की तुलना करें। इस पूर्वावलोकन से कुछ भी शुल्क नहीं लिया जाता है।</string>
+    <string name="continue_free">मुफ्त में जारी रखें</string>
+    <string name="promo_foot">सेटअप पूरा करने के लिए किसी सदस्यता की आवश्यकता नहीं है।</string>
+
+    <string name="perm_intro_title">आपकी गोपनीयता, आपके हाथों में।</string>
+    <string name="perm_intro_sub">केवल तभी अनुमति दें जब आप किसी सुविधा का उपयोग करते हैं। आप किसी भी समय अनुमतियाँ प्रबंधित कर सकते हैं।</string>
+    <string name="review_permissions">अनुमतियों की समीक्षा करें</string>
+    <string name="perm_setup_title">अपने उपकरण सेट करें</string>
+    <string name="perm_setup_sub">केवल वही अनुमतियाँ चालू करें जिनकी आपको आवश्यकता है। बाकी आप बाद में चालू कर सकते हैं।</string>
+
+    <!-- Home -->
+    <string name="home_title">हिडन कैमरा डिटेक्टर</string>
+    <string name="home_subtitle">अपने परिवेश को स्कैन करें और वाई-फ़ाई, ब्लूटूथ आदि का उपयोग करके संदिग्ध उपकरणों का पता लगाएं।</string>
+    <string name="start_full_scan">पूर्ण स्कैन प्रारंभ करें</string>
+    <string name="start_full_scan_desc">अपने क्षेत्र में छिपे कैमरों के लिए स्कैन करें</string>
+    <string name="scan_wifi">वाई-फ़ाई स्कैन</string>
+    <string name="scan_wifi_desc">उपकरणों का पता लगाएं</string>
+    <string name="scan_bluetooth">ब्लूटूथ स्कैन</string>
+    <string name="scan_bluetooth_desc">आस-पास के डिवाइस खोजें</string>
+    <string name="camera_detection">कैमरा डिटेक्शन</string>
+    <string name="camera_detection_desc">कैमरा लेंस से जांचें</string>
+    <string name="tips_guide">सुझाव और गाइड</string>
+    <string name="tips_guide_desc">सुरक्षित रहने का तरीका जानें</string>
+    <string name="magnetic_scanner">चुंबकीय स्कैनर</string>
+    <string name="magnetic_scanner_desc">चुंबकीय क्षेत्रों का निरीक्षण करें</string>
+    <string name="thermal_view">थर्मल व्यू</string>
+    <string name="thermal_view_desc">प्रदर्शन सिम्युलेटर</string>
+    <string name="secure_recorder">सुरक्षित रिकॉर्डर</string>
+    <string name="secure_recorder_desc">वीडियो और ऑडियो सुरक्षा</string>
+    <string name="private_vault">प्राइवेट वॉल्ट</string>
+    <string name="private_vault_desc">एन्क्रिप्टेड स्थानीय संग्रहण</string>
+    <string name="intruder_guard">इंट्रूडर गार्ड</string>
+    <string name="intruder_guard_desc">विफल अनलॉक प्रयासों की निगरानी करें</string>
+
+    <!-- Scan & Devices -->
+    <string name="scan_methods_title">स्कैन विधि चुनें</string>
+    <string name="select_a_method">एक विधि चुनें</string>
+    <string name="select_a_method_sub">प्रत्येक विधि आपके परिवेश के बारे में एक अलग सुराग प्रदान करती है।</string>
+    <string name="disclaimer_scan">कोई भी एक विधि अकेले छिपे हुए कैमरे की उपस्थिति या अनुपस्थिति को साबित नहीं करती है।</string>
+    <string name="devices_scanned">स्कैन किए गए उपकरण</string>
+    <string name="needs_review">समीक्षा आवश्यक है</string>
+    <string name="suspicious">संदिग्ध</string>
+    <string name="safe">सुरक्षित</string>
+    <string name="other">अन्य</string>
+    <string name="observed">देखा गया</string>
+    <string name="stop_scan">स्कैन रोकें</string>
+    <string name="scan_network">नेटवर्क स्कैन करें</string>
+    <string name="view_all_devices">सभी उपकरण देखें</string>
+    <string name="scan_again">फिर से स्कैन करें</string>
+
+    <!-- Magnetic Scanner -->
+    <string name="magnetic_title">चुंबकीय स्कैनर</string>
+    <string name="magnetic_field">चुंबकीय क्षेत्र</string>
+    <string name="ready_to_measure">मापने के लिए तैयार · नीचे प्रारंभ पर टैप करें</string>
+    <string name="safe_baseline">सामान्य क्षेत्र · पृथ्वी चुंबकीय आधार रेखा</string>
+    <string name="elevated_field">उन्नत क्षेत्र · आस-पास धातु या तार</string>
+    <string name="strong_anomaly">मजबूत विसंगति · छिपा हुआ इलेक्ट्रॉनिक्स / चुंबक</string>
+    <string name="start_magnetic_scan">चुंबकीय स्कैन प्रारंभ करें</string>
+    <string name="calibrate_guide">कैलिब्रेट कैसे करें</string>
+    <string name="audio_beep_alert">चेतावनी बीप</string>
+    <string name="magnetic_disclaimer">अकेले चुंबकीय भिन्नता कैमरे की उपस्थिति को सिद्ध नहीं कर सकती। धातु की वस्तुएं और इलेक्ट्रॉनिक्स भी चुंबकीय क्षेत्र को बदलते हैं।</string>
+
+    <!-- Vault & Recorder -->
+    <string name="protect_vault_title">अपने वॉल्ट की सुरक्षा करें</string>
+    <string name="protect_vault_desc">निजी मीडिया की सुरक्षा के लिए छह अंकों का पिन बनाएं (वैकल्पिक)।</string>
+    <string name="confirm_pin_title">अपने पिन की पुष्टि करें</string>
+    <string name="confirm_pin_desc">एक बार फिर अपना नया पिन दर्ज करें।</string>
+    <string name="you_are_all_set">आप पूरी तरह तैयार हैं!</string>
+    <string name="you_are_all_set_sub">आपके निजी सुरक्षा उपकरण उपयोग के लिए तैयार हैं।</string>
+    <string name="start_video_recording">वीडियो रिकॉर्डिंग शुरू करें</string>
+    <string name="start_audio_recording">ऑडियो रिकॉर्डिंग शुरू करें</string>
+    <string name="pause">रोकें</string>
+    <string name="resume">फिर से शुरू करें</string>
+    <string name="stop_save">रोकें और वॉल्ट में सहेजें</string>
+    <string name="saved_to_vault">आपके वॉल्ट में सहेजा गया</string>
+    <string name="saved_to_vault_desc">आपकी रिकॉर्डिंग स्थानीय रूप से सुरक्षित रूप से एन्क्रिप्ट की गई है।</string>
+    <string name="view_in_vault">वॉल्ट में देखें</string>
+    <string name="record_another">एक और रिकॉर्ड करें</string>
+    <string name="stealth_mode_active">स्टील्थ मोड सक्रिय</string>
+    <string name="stealth_mode_desc">स्क्रीन पूर्वावलोकन छिपा हुआ है। वीडियो पृष्ठभूमि में रिकॉर्ड हो रहा है।</string>
+
+    <!-- Intruder Guard -->
+    <string name="intruder_active">सक्रिय · अनलॉक प्रयासों की निगरानी</string>
+    <string name="intruder_disabled">अक्षम / निष्क्रिय</string>
+    <string name="device_admin_required_title">डिवाइस व्यवस्थापक आवश्यक है</string>
+    <string name="device_admin_required_desc">अपने फोन पर विफल लॉक स्क्रीन प्रयासों का पता लगाने के लिए, SecureLens को डिवाइस व्यवस्थापक के रूप में अधिकृत किया जाना चाहिए।</string>
+    <string name="activate_device_admin">डिवाइस व्यवस्थापक सक्रिय करें</string>
+    <string name="test_front_camera">फ्रंट कैमरा कैप्चर का परीक्षण करें</string>
+    <string name="recent_security_events">हाल की सुरक्षा घटनाएँ</string>
+    <string name="no_events_recorded">कोई सुरक्षा घटना दर्ज नहीं की गई</string>
+    <string name="photo_unavailable">फ़ोटो अनुपलब्ध (ओएस संरक्षित)</string>
+    <string name="photo_captured">कैप्चर किया गया और सहेजा गया</string>
+
+    <!-- Settings & Languages -->
+    <string name="choose_language_title">अपनी भाषा चुनें</string>
+    <string name="choose_language_sub">जारी रखने के लिए अपनी पसंदीदा भाषा का चयन करें।</string>
+    <string name="profile_settings">प्रोफ़ाइल और सेटिंग्स</string>
+    <string name="scan_history">स्कैन इतिहास</string>
+    <string name="privacy_security">गोपनीयता और सुरक्षा</string>
+    <string name="notifications">सूचनाएं</string>
+    <string name="dark_mode">डार्क मोड</string>
+    <string name="language">भाषा</string>
+    <string name="storage_management">संग्रहण प्रबंधन</string>
+    <string name="help_support">सहायता और समर्थन</string>
+    <string name="about">के बारे में</string>
+</resources>

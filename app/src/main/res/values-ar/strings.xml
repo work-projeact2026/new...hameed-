@@ -1,0 +1,147 @@
+<resources>
+    <string name="app_name">SecureLens</string>
+    <string name="device_admin_description">يراقب محاولات إلغاء قفل الشاشة الفاشلة لحماية خصوصيتك وتسجيل الأحداث الأمنية.</string>
+
+    <!-- Onboarding & Common -->
+    <string name="skip">تخطي</string>
+    <string name="skip_for_now">تخطي الآن</string>
+    <string name="continue_btn">متابعة</string>
+    <string name="get_started">ابدأ الآن</string>
+    <string name="not_now">ليس الآن</string>
+    <string name="try_again">إعادة المحاولة</string>
+    <string name="save_preferences">حفظ التفضيلات</string>
+    <string name="back">رجوع</string>
+    <string name="cancel">إلغاء</string>
+    <string name="delete">حذف</string>
+    <string name="rename">إعادة تسمية</string>
+    <string name="export_copy">تصدير نسخة</string>
+    <string name="save">حفظ</string>
+    <string name="got_it">فهمت</string>
+    <string name="go_to_app">الانتقال إلى التطبيق</string>
+    <string name="understood">مفهوم</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">الرئيسية</string>
+    <string name="nav_devices">الأجهزة</string>
+    <string name="nav_rooms">الغرف</string>
+    <string name="nav_settings">الإعدادات</string>
+
+    <!-- Onboarding Screens -->
+    <string name="onboarding_1_title">مكان أكثر أماناً يبدأ هنا</string>
+    <string name="onboarding_1_sub">اكتشف الكاميرات الخفية، احمِ خصوصيتك واشعر بالأمان أينما ذهبت.</string>
+    <string name="onboarding_2_title">ابحث عما هو مخفي</string>
+    <string name="onboarding_2_sub">افحص محيطك باستخدام أدوات بصرية وأدوات للأجهزة القريبة.</string>
+    <string name="onboarding_3_title">اكتشف الأجهزة القريبة</string>
+    <string name="onboarding_3_sub">راجع أجهزة الواي فاي والبلوتوث باستخدام ميزات الفحص المتاحة.</string>
+    <string name="onboarding_4_title">خصوصيتك تهمنا</string>
+    <string name="onboarding_4_sub">احتفظ بصورك وتسجيلاتك وأحداث الأمان في خزنة خاصة مشفرة.</string>
+    
+    <string name="promo_title">المزيد من الأدوات. المزيد من التحكم.</string>
+    <string name="promo_sub">استكشف الميزات المتقدمة الاختيارية.</string>
+    <string name="promo_card_title">SecureLens بريميوم</string>
+    <string name="promo_card_desc">قارن الخطط والشروط قبل الشراء. لا يتم خصم أي شيء من هذا العرض التجريبي.</string>
+    <string name="continue_free">المتابعة مجاناً</string>
+    <string name="promo_foot">لا يلزم أي اشتراك لإنهاء الإعداد.</string>
+
+    <string name="perm_intro_title">خصوصيتك بين يديك.</string>
+    <string name="perm_intro_sub">امنح الوصول فقط عند استخدام الميزة. يمكنك إدارة الأذونات في أي وقت.</string>
+    <string name="review_permissions">مراجعة الأذونات</string>
+    <string name="perm_setup_title">إعداد أدواتك</string>
+    <string name="perm_setup_sub">قم بتفعيل الأذونات التي تحتاجها فقط. يمكنك إكمال الإعداد وتفعيل الباقي لاحقاً.</string>
+
+    <!-- Home -->
+    <string name="home_title">كاشف الكاميرات الخفية</string>
+    <string name="home_subtitle">افحص محيطك واكتشف الأجهزة المشبوهة باستخدام الواي فاي والبلوتوث والمزيد.</string>
+    <string name="start_full_scan">بدء فحص شامل</string>
+    <string name="start_full_scan_desc">فحص الكاميرات الخفية في منطقتك</string>
+    <string name="scan_wifi">فحص الواي فاي</string>
+    <string name="scan_wifi_desc">اكتشاف الأجهزة</string>
+    <string name="scan_bluetooth">فحص البلوتوث</string>
+    <string name="scan_bluetooth_desc">العثور على الأجهزة المجاورة</string>
+    <string name="camera_detection">كشف الكاميرا</string>
+    <string name="camera_detection_desc">الفحص عبر عدسة الكاميرا</string>
+    <string name="tips_guide">نصائح ودليل</string>
+    <string name="tips_guide_desc">تعلم كيف تبقى آمناً</string>
+    <string name="magnetic_scanner">الماسح المغناطيسي</string>
+    <string name="magnetic_scanner_desc">مراقبة الحقول المغناطيسية</string>
+    <string name="thermal_view">الرؤية الحرارية</string>
+    <string name="thermal_view_desc">محاكي تجريبي</string>
+    <string name="secure_recorder">المسجل الآمن</string>
+    <string name="secure_recorder_desc">حماية الفيديو والصوت</string>
+    <string name="private_vault">الخزنة الخاصة</string>
+    <string name="private_vault_desc">تخزين محلي مشفر</string>
+    <string name="intruder_guard">حارس المتسللين</string>
+    <string name="intruder_guard_desc">مراقبة محاولات فتح القفل الفاشلة</string>
+
+    <!-- Scan & Devices -->
+    <string name="scan_methods_title">اختر طريقة الفحص</string>
+    <string name="select_a_method">حدد طريقة</string>
+    <string name="select_a_method_sub">توفر كل طريقة دليلاً مختلفاً حول محيطك.</string>
+    <string name="disclaimer_scan">لا تثبت أي طريقة بمفردها وجود أو عدم وجود كاميرا خفية.</string>
+    <string name="devices_scanned">الأجهزة المفحوصة</string>
+    <string name="needs_review">بحاجة للمراجعة</string>
+    <string name="suspicious">مشبوه</string>
+    <string name="safe">آمن</string>
+    <string name="other">أخرى</string>
+    <string name="observed">تمت ملاحظته</string>
+    <string name="stop_scan">إيقاف الفحص</string>
+    <string name="scan_network">فحص الشبكة</string>
+    <string name="view_all_devices">عرض جميع الأجهزة</string>
+    <string name="scan_again">إعادة الفحص</string>
+
+    <!-- Magnetic Scanner -->
+    <string name="magnetic_title">الماسح المغناطيسي</string>
+    <string name="magnetic_field">الحقل المغناطيسي</string>
+    <string name="ready_to_measure">جاهز للقياس · اضغط على ابدأ أدناه</string>
+    <string name="safe_baseline">مستوى طبيعي · خط أساس مغناطيسية الأرض</string>
+    <string name="elevated_field">حقل مرتفع · معدن أو سلك قريب</string>
+    <string name="strong_anomaly">شذوذ قوي · إلكترونيات مخفية / مغناطيس</string>
+    <string name="start_magnetic_scan">بدء المسح المغناطيسي</string>
+    <string name="calibrate_guide">كيفية المعايرة</string>
+    <string name="audio_beep_alert">صافرة تحذيرية</string>
+    <string name="magnetic_disclaimer">التغير المغناطيسي وحده لا يثبت وجود كاميرا. الأجسام المعدنية والإلكترونيات تغير أيضاً الحقول المغناطيسية.</string>
+
+    <!-- Vault & Recorder -->
+    <string name="protect_vault_title">حماية خزنتك</string>
+    <string name="protect_vault_desc">أنشئ رمز PIN مكوناً من ستة أرقام لحماية الوسائط الخاصة (اختياري).</string>
+    <string name="confirm_pin_title">تأكيد رمز PIN</string>
+    <string name="confirm_pin_desc">أدخل رمز PIN الجديد مرة أخرى.</string>
+    <string name="you_are_all_set">أنت جاهز تماماً!</string>
+    <string name="you_are_all_set_sub">أدوات الأمان الخاصة بك جاهزة للاستخدام.</string>
+    <string name="start_video_recording">بدء تسجيل الفيديو</string>
+    <string name="start_audio_recording">بدء تسجيل الصوت</string>
+    <string name="pause">إيقاف مؤقت</string>
+    <string name="resume">استئناف</string>
+    <string name="stop_save">إيقاف وحفظ في الخزنة</string>
+    <string name="saved_to_vault">تم الحفظ في خزنتك</string>
+    <string name="saved_to_vault_desc">تسجيلك مشفر ومفهرس محلياً بأمان.</string>
+    <string name="view_in_vault">عرض في الخزنة</string>
+    <string name="record_another">تسجيل آخر</string>
+    <string name="stealth_mode_active">وضع التخفي مفعل</string>
+    <string name="stealth_mode_desc">معاينة الشاشة محجوبة. يستمر الفيديو بالتسجيل في الخلفية.</string>
+
+    <!-- Intruder Guard -->
+    <string name="intruder_active">نشط · يراقب محاولات فتح القفل</string>
+    <string name="intruder_disabled">معطل / غير نشط</string>
+    <string name="device_admin_required_title">مطلوب مسؤول الجهاز</string>
+    <string name="device_admin_required_desc">لاكتشاف محاولات فتح القفل الفاشلة على هاتفك، يجب تفويض التطبيق كمسؤول جهاز.</string>
+    <string name="activate_device_admin">تفعيل مسؤول الجهاز</string>
+    <string name="test_front_camera">اختبار التقاط الكاميرا الأمامية</string>
+    <string name="recent_security_events">الأحداث الأمنية الأخيرة</string>
+    <string name="no_events_recorded">لم تسجل أي أحداث أمنية</string>
+    <string name="photo_unavailable">الصورة غير متاحة (حماية النظام)</string>
+    <string name="photo_captured">تم الالتقاط والحفظ</string>
+
+    <!-- Settings & Languages -->
+    <string name="choose_language_title">اختر لغتك</string>
+    <string name="choose_language_sub">حدد لغتك المفضلة للمتابعة.</string>
+    <string name="profile_settings">الملف الشخصي والإعدادات</string>
+    <string name="scan_history">سجل الفحص</string>
+    <string name="privacy_security">الخصوصية والأمان</string>
+    <string name="notifications">الإشعارات</string>
+    <string name="dark_mode">الوضع الداكن</string>
+    <string name="language">اللغة</string>
+    <string name="storage_management">إدارة التخزين</string>
+    <string name="help_support">المساعدة والدعم</string>
+    <string name="about">حول التطبيق</string>
+</resources>

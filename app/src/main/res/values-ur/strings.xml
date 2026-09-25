@@ -1,0 +1,147 @@
+<resources>
+    <string name="app_name">SecureLens</string>
+    <string name="device_admin_description">آپ کی پرائیویسی کی حفاظت اور سیکیورٹی ایونٹس کو ریکارڈ کرنے کے لیے اسکرین انلاک کی ناکام کوششوں کی نگرانی کرتا ہے۔</string>
+
+    <!-- Onboarding & Common -->
+    <string name="skip">چھوڑیں</string>
+    <string name="skip_for_now">ابھی چھوڑ دیں</string>
+    <string name="continue_btn">جاری رکھیں</string>
+    <string name="get_started">شروع کریں</string>
+    <string name="not_now">ابھی نہیں</string>
+    <string name="try_again">دوبارہ کوشش کریں</string>
+    <string name="save_preferences">ترجیحات محفوظ کریں</string>
+    <string name="back">واپس</string>
+    <string name="cancel">منسوخ</string>
+    <string name="delete">حذف کریں</string>
+    <string name="rename">نام تبدیل کریں</string>
+    <string name="export_copy">ایک کاپی برآمد کریں</string>
+    <string name="save">محفوظ کریں</string>
+    <string name="got_it">سمجھ گیا</string>
+    <string name="go_to_app">ایپ پر جائیں</string>
+    <string name="understood">سمجھ گئے</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">ہوم</string>
+    <string name="nav_devices">آلات</string>
+    <string name="nav_rooms">کمرے</string>
+    <string name="nav_settings">ترتیبات</string>
+
+    <!-- Onboarding Screens -->
+    <string name="onboarding_1_title">ایک محفوظ مقام کا آغاز یہاں سے</string>
+    <string name="onboarding_1_sub">پوشیدہ کیمروں کا پتہ لگائیں، اپنی پرائیویسی کی حفاظت کریں اور ہر جگہ پرسکون رہیں۔</string>
+    <string name="onboarding_2_title">چھپی ہوئی چیزیں تلاش کریں</string>
+    <string name="onboarding_2_sub">اپنے ماحول کا جائزہ لینے کے لیے آپٹیکل اور قریبی ڈیوائس ٹولز استعمال کریں۔</string>
+    <string name="onboarding_3_title">قریبی آلات دریافت کریں</string>
+    <string name="onboarding_3_sub">دستیاب اینڈرائیڈ اسکیننگ سے وائی فائی اور بلوٹوتھ آلات کی جانچ کریں۔</string>
+    <string name="onboarding_4_title">آپ کی پرائیویسی اہم ہے</string>
+    <string name="onboarding_4_sub">اپنی تصاویر، ریکارڈنگز اور سیکیورٹی ایونٹس کو ایک نجی والٹ میں محفوظ رکھیں۔</string>
+    
+    <string name="promo_title">مزید ٹولز۔ زیادہ کنٹرول۔</string>
+    <string name="promo_sub">دستیاب ہونے پر اختیاری ایڈوانس فیچرز دیکھیں۔</string>
+    <string name="promo_card_title">SecureLens پریمیم</string>
+    <string name="promo_card_desc">خریداری سے پہلے منصوبوں کا موازنہ کریں۔ اس پیش منظر سے کوئی چارج نہیں ہوگا۔</string>
+    <string name="continue_free">مفت جاری رکھیں</string>
+    <string name="promo_foot">سیٹ اپ مکمل کرنے کے لیے سبسکرپشن کی ضرورت نہیں ہے۔</string>
+
+    <string name="perm_intro_title">آپ کی پرائیویسی، آپ کے ہاتھ میں۔</string>
+    <string name="perm_intro_sub">صرف اس وقت اجازت دیں جب آپ کوئی فیچر استعمال کریں۔ ترتیبات سے کسی بھی وقت اجازت تبدیل کی جا سکتی ہے۔</string>
+    <string name="review_permissions">اجازتوں کا جائزہ لیں</string>
+    <string name="perm_setup_title">اپنے ٹولز سیٹ کریں</string>
+    <string name="perm_setup_sub">صرف ضروری اجازتیں فعال کریں۔ باقی بعد میں بھی آن کی جا سکتی ہیں۔</string>
+
+    <!-- Home -->
+    <string name="home_title">پوشیدہ کیمرہ ڈٹیکٹر</string>
+    <string name="home_subtitle">اپنے اردگرد کا معائنہ کریں اور وائی فائی، بلوٹوتھ وغیرہ کے ذریعے مشکوک آلات کا پتہ لگائیں۔</string>
+    <string name="start_full_scan">مکمل اسکین شروع کریں</string>
+    <string name="start_full_scan_desc">اپنے علاقے میں پوشیدہ کیمرے اسکین کریں</string>
+    <string name="scan_wifi">وائی فائی اسکین</string>
+    <string name="scan_wifi_desc">آلات کا پتہ لگائیں</string>
+    <string name="scan_bluetooth">بلوٹوتھ اسکین</string>
+    <string name="scan_bluetooth_desc">قریبی آلات تلاش کریں</string>
+    <string name="camera_detection">کیمرہ ڈٹیکشن</string>
+    <string name="camera_detection_desc">کیمرہ لینس سے جانچیں</string>
+    <string name="tips_guide">رہنمائی اور نکات</string>
+    <string name="tips_guide_desc">محفوظ رہنے کا طریقہ جانیں</string>
+    <string name="magnetic_scanner">مقناطیسی اسکینر</string>
+    <string name="magnetic_scanner_desc">مقناطیسی فیلڈز کا مشاہدہ کریں</string>
+    <string name="thermal_view">تھرمل ویو</string>
+    <string name="thermal_view_desc">مظاہرہ سمیلیٹر</string>
+    <string name="secure_recorder">محفوظ ریکارڈر</string>
+    <string name="secure_recorder_desc">ویڈیو اور آڈیو تحفظ</string>
+    <string name="private_vault">نجی والٹ</string>
+    <string name="private_vault_desc">خفیہ مقامی اسٹوریج</string>
+    <string name="intruder_guard">گھس بیٹھیا گارڈ</string>
+    <string name="intruder_guard_desc">انلاک کی ناکام کوششوں کی نگرانی</string>
+
+    <!-- Scan & Devices -->
+    <string name="scan_methods_title">اسکین کا طریقہ منتخب کریں</string>
+    <string name="select_a_method">طریقہ منتخب کریں</string>
+    <string name="select_a_method_sub">ہر طریقہ آپ کے اردگرد کے بارے میں مختلف اشارہ دیتا ہے۔</string>
+    <string name="disclaimer_scan">کوئی بھی ایک طریقہ تنہا کیمرے کی موجودگی یا عدم موجودگی ثابت نہیں کرتا۔</string>
+    <string name="devices_scanned">اسکین شدہ آلات</string>
+    <string name="needs_review">جائزہ درکار ہے</string>
+    <string name="suspicious">مشکوک</string>
+    <string name="safe">محفوظ</string>
+    <string name="other">دیگر</string>
+    <string name="observed">مشاہدہ کیا گیا</string>
+    <string name="stop_scan">اسکین بند کریں</string>
+    <string name="scan_network">نیٹ ورک اسکین کریں</string>
+    <string name="view_all_devices">تمام آلات دیکھیں</string>
+    <string name="scan_again">دوبارہ اسکین کریں</string>
+
+    <!-- Magnetic Scanner -->
+    <string name="magnetic_title">مقناطیسی اسکینر</string>
+    <string name="magnetic_field">مقناطیسی فیلڈ</string>
+    <string name="ready_to_measure">پیمائش کے لیے تیار · نیچے شروع پر ٹیپ کریں</string>
+    <string name="safe_baseline">نارمل فیلڈ · زمین کی مقناطیسی بیس لائن</string>
+    <string name="elevated_field">بلند فیلڈ · قریب میں دھات یا تار</string>
+    <string name="strong_anomaly">شدید غیر معمولی · پوشیدہ الیکٹرانکس / مقناطیس</string>
+    <string name="start_magnetic_scan">مقناطیسی اسکین شروع کریں</string>
+    <string name="calibrate_guide">کیلیبریٹ کیسے کریں</string>
+    <string name="audio_beep_alert">وارننگ بیپ</string>
+    <string name="magnetic_disclaimer">صرف مقناطیسی تبدیلی سے کیمرے کی تصدیق نہیں ہوتی۔ دھاتی اشیاء اور الیکٹرانکس بھی مقناطیسی فیلڈ کو بدلتے ہیں۔</string>
+
+    <!-- Vault & Recorder -->
+    <string name="protect_vault_title">اپنے والٹ کی حفاظت کریں</string>
+    <string name="protect_vault_desc">نجی میڈیا کی حفاظت کے لیے 6 ہندسوں کا پن بنائیں (اختیاری)۔</string>
+    <string name="confirm_pin_title">اپنے پن کی تصدیق کریں</string>
+    <string name="confirm_pin_desc">ایک بار پھر اپنا نیا پن درج کریں۔</string>
+    <string name="you_are_all_set">آپ بالکل تیار ہیں!</string>
+    <string name="you_are_all_set_sub">آپ کے نجی سیکیورٹی ٹولز استعمال کے لیے تیار ہیں۔</string>
+    <string name="start_video_recording">ویڈیو ریکارڈنگ شروع کریں</string>
+    <string name="start_audio_recording">آڈیو ریکارڈنگ شروع کریں</string>
+    <string name="pause">روکیں</string>
+    <string name="resume">دوبارہ شروع کریں</string>
+    <string name="stop_save">روکیں اور والٹ میں محفوظ کریں</string>
+    <string name="saved_to_vault">آپ کے والٹ میں محفوظ ہو گیا</string>
+    <string name="saved_to_vault_desc">آپ کی ریکارڈنگ محفوظ طور پر خفیہ اور انڈیکس ہو گئی ہے۔</string>
+    <string name="view_in_vault">والٹ میں دیکھیں</string>
+    <string name="record_another">ایک اور ریکارڈ کریں</string>
+    <string name="stealth_mode_active">اسٹیلتھ موڈ فعال</string>
+    <string name="stealth_mode_desc">اسکرین ویو پوشیدہ ہے۔ ویڈیو پس منظر میں ریکارڈ ہو رہی ہے۔</string>
+
+    <!-- Intruder Guard -->
+    <string name="intruder_active">فعال · انلاک کوششوں کی نگرانی</string>
+    <string name="intruder_disabled">غیر فعال</string>
+    <string name="device_admin_required_title">ڈیوائس ایڈمن درکار ہے</string>
+    <string name="device_admin_required_desc">آپ کے فون پر ناکام انلاک کوششوں کا پتہ لگانے کے لیے SecureLens کا ڈیوائس ایڈمن ہونا ضروری ہے۔</string>
+    <string name="activate_device_admin">ڈیوائس ایڈمن فعال کریں</string>
+    <string name="test_front_camera">فرنٹ کیمرہ کیپچر ٹیسٹ کریں</string>
+    <string name="recent_security_events">حالیہ سیکیورٹی ایونٹس</string>
+    <string name="no_events_recorded">کوئی سیکیورٹی ایونٹ ریکارڈ نہیں ہوا</string>
+    <string name="photo_unavailable">تصویر دستیاب نہیں (او ایس محفوظ)</string>
+    <string name="photo_captured">کیپچر اور محفوظ ہو گیا</string>
+
+    <!-- Settings & Languages -->
+    <string name="choose_language_title">اپنی زبان منتخب کریں</string>
+    <string name="choose_language_sub">جاری رکھنے کے لیے اپنی ترجیحی زبان کا انتخاب کریں۔</string>
+    <string name="profile_settings">پروفائل اور ترتیبات</string>
+    <string name="scan_history">اسکین ہسٹری</string>
+    <string name="privacy_security">پرائیویسی اور سیکیورٹی</string>
+    <string name="notifications">اطلاعات</string>
+    <string name="dark_mode">ڈارک موڈ</string>
+    <string name="language">زبان</string>
+    <string name="storage_management">اسٹوریج مینجمنٹ</string>
+    <string name="help_support">مدد اور تعاون</string>
+    <string name="about">کے بارے میں</string>
+</resources>
