@@ -6,6 +6,8 @@ import android.app.admin.DeviceAdminReceiver
 import android.app.admin.DevicePolicyManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.os.UserHandle
 import androidx.core.app.NotificationCompat
 import com.example.MainActivity
 import com.example.R
@@ -31,8 +33,20 @@ class SecurityAdminReceiver : DeviceAdminReceiver() {
         }
     }
 
+    @Suppress("DEPRECATION")
     override fun onPasswordFailed(context: Context, intent: Intent) {
         super.onPasswordFailed(context, intent)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            handleFailedAttempt(context)
+        }
+    }
+
+    override fun onPasswordFailed(context: Context, intent: Intent, user: UserHandle) {
+        super.onPasswordFailed(context, intent, user)
+        handleFailedAttempt(context)
+    }
+
+    private fun handleFailedAttempt(context: Context) {
         val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as? DevicePolicyManager
         val failedCount = try {
             dpm?.getCurrentFailedPasswordAttempts() ?: 1
@@ -75,9 +89,5 @@ class SecurityAdminReceiver : DeviceAdminReceiver() {
                 manager?.notify(2001, notification)
             }
         }
-    }
-
-    override fun onPasswordSucceeded(context: Context, intent: Intent) {
-        super.onPasswordSucceeded(context, intent)
     }
 }

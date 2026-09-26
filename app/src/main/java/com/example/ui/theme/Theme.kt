@@ -1,52 +1,107 @@
 package com.example.ui.theme
 
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.Color
 
-private val DarkColorScheme =
-  darkColorScheme(primary = Purple80, secondary = PurpleGrey80, tertiary = Pink80)
+data class SecureColors(
+    val isDark: Boolean,
+    val background: Color,
+    val surface: Color,
+    val surfaceSoft: Color,
+    val ink: Color,
+    val muted: Color,
+    val divider: Color
+)
 
-private val LightColorScheme =
-  lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
+val LocalSecureColors = staticCompositionLocalOf {
+    SecureColors(
+        isDark = false,
+        background = SecureBackgroundLight,
+        surface = SecureSurfaceLight,
+        surfaceSoft = SecureSurfaceSoftLight,
+        ink = SecureInkLight,
+        muted = SecureMutedLight,
+        divider = SecureDividerLight
+    )
+}
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+val SecureBackground: Color
+    @Composable
+    get() = LocalSecureColors.current.background
+
+val SecureSurface: Color
+    @Composable
+    get() = LocalSecureColors.current.surface
+
+val SecureSurfaceSoft: Color
+    @Composable
+    get() = LocalSecureColors.current.surfaceSoft
+
+val SecureInk: Color
+    @Composable
+    get() = LocalSecureColors.current.ink
+
+val SecureMuted: Color
+    @Composable
+    get() = LocalSecureColors.current.muted
+
+val SecureDivider: Color
+    @Composable
+    get() = LocalSecureColors.current.divider
+
+private val DarkColorScheme = darkColorScheme(
+    primary = SecurePrimaryLight,
     onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
-  )
+    background = SecureBackgroundDark,
+    surface = SecureSurfaceDark,
+    onBackground = SecureInkDark,
+    onSurface = SecureInkDark
+)
+
+private val LightColorScheme = lightColorScheme(
+    primary = SecurePrimary,
+    onPrimary = Color.White,
+    background = SecureBackgroundLight,
+    surface = SecureSurfaceLight,
+    onBackground = SecureInkLight,
+    onSurface = SecureInkLight
+)
 
 @Composable
-fun MyApplicationTheme(
-  darkTheme: Boolean = isSystemInDarkTheme(),
-  // Dynamic color is available on Android 12+
-  dynamicColor: Boolean = true,
-  content: @Composable () -> Unit,
+fun SecureLensTheme(
+    darkTheme: Boolean = false,
+    content: @Composable () -> Unit
 ) {
-  val colorScheme =
-    when {
-      dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-        val context = LocalContext.current
-        if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-      }
-
-      darkTheme -> DarkColorScheme
-      else -> LightColorScheme
+    val secureColors = if (darkTheme) {
+        SecureColors(
+            isDark = true,
+            background = SecureBackgroundDark,
+            surface = SecureSurfaceDark,
+            surfaceSoft = SecureSurfaceSoftDark,
+            ink = SecureInkDark,
+            muted = SecureMutedDark,
+            divider = SecureDividerDark
+        )
+    } else {
+        SecureColors(
+            isDark = false,
+            background = SecureBackgroundLight,
+            surface = SecureSurfaceLight,
+            surfaceSoft = SecureSurfaceSoftLight,
+            ink = SecureInkLight,
+            muted = SecureMutedLight,
+            divider = SecureDividerLight
+        )
     }
 
-  MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+
+    CompositionLocalProvider(LocalSecureColors provides secureColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
 }

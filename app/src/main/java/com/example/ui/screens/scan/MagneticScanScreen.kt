@@ -49,7 +49,7 @@ fun MagneticScanScreen(
     onHelpClick: () -> Unit
 ) {
     val context = LocalContext.current
-    var isMeasuring by remember { mutableStateOf(false) }
+    var isMeasuring by remember { mutableStateOf(true) }
     var magneticMagnitude by remember { mutableFloatStateOf(48f) }
     var isAudioAlertEnabled by remember { mutableStateOf(true) }
     var showCalibrateDialog by remember { mutableStateOf(false) }

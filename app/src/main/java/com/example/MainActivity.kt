@@ -1,6 +1,7 @@
 package com.example
 
 import android.Manifest
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -35,6 +36,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,15 +77,51 @@ class MainActivity : ComponentActivity() {
                 val currentBackStack by navController.currentBackStackEntryAsState()
                 val currentRoute = currentBackStack?.destination?.route ?: ""
 
+                // Handle external intents from recording & security notifications
+                LaunchedEffect(Unit) {
+                    val target = intent?.getStringExtra("navigate_to")
+                    val mediaId = intent?.getStringExtra("open_vault_media_id")
+                    if (mediaId != null) {
+                        navController.navigate("vault_media/$mediaId") {
+                            launchSingleTop = true
+                        }
+                    } else if (target != null) {
+                        navController.navigate(target) {
+                            launchSingleTop = true
+                        }
+                    }
+                }
+
                 // Multiple permissions launcher for quick grant flow
                 val permissionLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.RequestMultiplePermissions()
                 ) { /* permissions evaluated per feature */ }
 
-                // Top level bottom nav tabs
-                val isBottomNavVisible = currentRoute in listOf(
-                    "home", "devices", "rooms", "settings"
+                // Bottom nav visibility across all in-app screens
+                val onboardingRoutes = setOf(
+                    "splash",
+                    "language_select",
+                    "onboarding_carousel",
+                    "promotion",
+                    "permissions_setup",
+                    "vault_pin_create",
+                    "setup_complete"
                 )
+                val isBottomNavVisible = currentRoute.isNotEmpty() &&
+                    currentRoute !in onboardingRoutes &&
+                    !currentRoute.startsWith("vault_pin_confirm")
+
+                val openVault = {
+                    coroutineScope.launch {
+                        val pin = settingsStore.vaultPin.first()
+                        val isPasswordEnabled = settingsStore.isVaultPasswordEnabled.first()
+                        if (isPasswordEnabled && !pin.isNullOrBlank()) {
+                            navController.navigate("vault_unlock")
+                        } else {
+                            navController.navigate("vault_gallery")
+                        }
+                    }
+                }
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
@@ -90,11 +132,27 @@ class MainActivity : ComponentActivity() {
                             SecureBottomNav(
                                 currentRoute = currentRoute,
                                 onNavigate = { destination ->
-                                    if (destination != currentRoute) {
-                                        navController.navigate(destination) {
-                                            popUpTo("home") { saveState = true }
-                                            launchSingleTop = true
-                                            restoreState = true
+                                    if (destination == "home") {
+                                        if (currentRoute != "home") {
+                                            val popped = navController.popBackStack("home", inclusive = false)
+                                            if (!popped || navController.currentDestination?.route != "home") {
+                                                navController.navigate("home") {
+                                                    popUpTo(0) { inclusive = false }
+                                                    launchSingleTop = true
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        if (currentRoute != destination) {
+                                            val popped = navController.popBackStack(destination, inclusive = false)
+                                            if (!popped || navController.currentDestination?.route != destination) {
+                                                navController.navigate(destination) {
+                                                    popUpTo("home") {
+                                                        saveState = false
+                                                    }
+                                                    launchSingleTop = true
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -136,7 +194,12 @@ class MainActivity : ComponentActivity() {
                                 onLanguageSelected = { lang ->
                                     coroutineScope.launch {
                                         settingsStore.setSelectedLanguage(lang)
-                                        navController.navigate("onboarding_carousel")
+                                        val completed = settingsStore.isOnboardingCompleted.first()
+                                        if (completed) {
+                                            navController.popBackStack()
+                                        } else {
+                                            navController.navigate("onboarding_carousel")
+                                        }
                                     }
                                 }
                             )
@@ -183,7 +246,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onSkip = {
                                     coroutineScope.launch {
-                                        settingsStore.setVaultPin("")
+                                        settingsStore.clearVaultPin()
                                         settingsStore.setOnboardingCompleted(true)
                                         navController.navigate("setup_complete") {
                                             popUpTo("onboarding_carousel") { inclusive = true }
@@ -218,8 +281,11 @@ class MainActivity : ComponentActivity() {
                         composable("setup_complete") {
                             SetupCompleteScreen(
                                 onGoToApp = {
-                                    navController.navigate("home") {
-                                        popUpTo("setup_complete") { inclusive = true }
+                                    coroutineScope.launch {
+                                        settingsStore.setOnboardingCompleted(true)
+                                        navController.navigate("home") {
+                                            popUpTo(0) { inclusive = true }
+                                        }
                                     }
                                 }
                             )
@@ -267,7 +333,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                     navController.navigate("recorder")
                                 },
-                                onPrivateVault = { navController.navigate("vault_unlock") },
+                                onPrivateVault = { openVault() },
                                 onIntruderGuard = { navController.navigate("intruder_guard") },
                                 onNotificationClick = { navController.navigate("notification_settings") }
                             )
@@ -371,7 +437,7 @@ class MainActivity : ComponentActivity() {
                             CameraFinderScreen(
                                 onBackClick = { navController.popBackStack() },
                                 onHelpClick = { navController.navigate("help_support") },
-                                onPhotoSaved = { navController.navigate("vault_unlock") }
+                                onPhotoSaved = { openVault() }
                             )
                         }
 
@@ -418,9 +484,7 @@ class MainActivity : ComponentActivity() {
                         composable("recorder") {
                             RecorderScreen(
                                 onBackClick = { navController.popBackStack() },
-                                onViewInVault = {
-                                    navController.navigate("vault_unlock")
-                                },
+                                onViewInVault = { openVault() },
                                 onHelpClick = { navController.navigate("help_support") }
                             )
                         }
@@ -487,7 +551,7 @@ class MainActivity : ComponentActivity() {
                         composable("storage_management") {
                             StorageManagementScreen(
                                 onBackClick = { navController.popBackStack() },
-                                onOpenVault = { navController.navigate("vault_unlock") }
+                                onOpenVault = { openVault() }
                             )
                         }
 

@@ -1,6 +1,7 @@
 package com.example.ui.screens.onboarding
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,11 +23,13 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.R
 import com.example.ui.components.*
 import com.example.ui.theme.*
 import kotlinx.coroutines.delay
@@ -65,17 +68,10 @@ fun SplashScreen(
                     .background(PrimaryBlueGradient),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Shield,
+                Image(
+                    painter = painterResource(R.drawable.ic_securelens_logo),
                     contentDescription = "SecureLens",
-                    tint = Color.White,
-                    modifier = Modifier.size(54.dp)
-                )
-                Icon(
-                    imageVector = Icons.Filled.CameraAlt,
-                    contentDescription = null,
-                    tint = SecureInk,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(64.dp)
                 )
             }
 

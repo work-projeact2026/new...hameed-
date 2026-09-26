@@ -28,6 +28,7 @@ class SettingsStore(private val context: Context) {
         val KEY_SECURITY_ALERTS = booleanPreferencesKey("security_alerts")
         val KEY_SCAN_NOTIFICATIONS = booleanPreferencesKey("scan_notifications")
         val KEY_VAULT_REMINDERS = booleanPreferencesKey("vault_reminders")
+        val KEY_VAULT_PASSWORD_ENABLED = booleanPreferencesKey("vault_password_enabled")
     }
 
     val isOnboardingCompleted: Flow<Boolean> = context.dataStore.data.map {
@@ -44,6 +45,10 @@ class SettingsStore(private val context: Context) {
 
     val vaultPin: Flow<String?> = context.dataStore.data.map {
         it[KEY_VAULT_PIN]
+    }
+
+    val isVaultPasswordEnabled: Flow<Boolean> = context.dataStore.data.map {
+        (it[KEY_VAULT_PASSWORD_ENABLED] == true) && !it[KEY_VAULT_PIN].isNullOrBlank()
     }
 
     val isBiometricEnabled: Flow<Boolean> = context.dataStore.data.map {
@@ -111,7 +116,31 @@ class SettingsStore(private val context: Context) {
     }
 
     suspend fun setVaultPin(pin: String) {
-        context.dataStore.edit { it[KEY_VAULT_PIN] = pin }
+        context.dataStore.edit {
+            if (pin.isNotBlank()) {
+                it[KEY_VAULT_PIN] = pin
+                it[KEY_VAULT_PASSWORD_ENABLED] = true
+            } else {
+                it.remove(KEY_VAULT_PIN)
+                it[KEY_VAULT_PASSWORD_ENABLED] = false
+            }
+        }
+    }
+
+    suspend fun setVaultPasswordEnabled(enabled: Boolean) {
+        context.dataStore.edit {
+            it[KEY_VAULT_PASSWORD_ENABLED] = enabled
+            if (!enabled) {
+                it.remove(KEY_VAULT_PIN)
+            }
+        }
+    }
+
+    suspend fun clearVaultPin() {
+        context.dataStore.edit {
+            it.remove(KEY_VAULT_PIN)
+            it[KEY_VAULT_PASSWORD_ENABLED] = false
+        }
     }
 
     suspend fun setBiometricEnabled(enabled: Boolean) {

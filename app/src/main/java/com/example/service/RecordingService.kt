@@ -47,7 +47,6 @@ class RecordingService : Service(), LifecycleOwner {
     private var mediaRecorder: MediaRecorder? = null
     private var currentOutputFile: File? = null
     private var currentMode = "VIDEO"
-    private var wakeLock: android.os.PowerManager.WakeLock? = null
 
     companion object {
         const val ACTION_START = "com.example.service.ACTION_START"
@@ -125,12 +124,6 @@ class RecordingService : Service(), LifecycleOwner {
     private fun startRecordingSession(mode: String) {
         currentMode = mode
         startForeground(1001, buildNotification(0L, mode, false))
-
-        try {
-            val pm = getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager
-            wakeLock = pm?.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "SecureLens:RecordingWakeLock")
-            wakeLock?.acquire(2 * 60 * 60 * 1000L) // 2 hours safety limit for lock screen recording
-        } catch (e: Exception) {}
 
         try {
             val stagingDir = File(filesDir, "private_staging").apply { if (!exists()) mkdirs() }
@@ -254,13 +247,6 @@ class RecordingService : Service(), LifecycleOwner {
             }
 
             withContext(Dispatchers.Main) {
-                try {
-                    if (wakeLock?.isHeld == true) {
-                        wakeLock?.release()
-                    }
-                } catch (e: Exception) {}
-                wakeLock = null
-
                 _sessionState.value = RecordingSessionState(
                     isRecording = false,
                     isPaused = false,
@@ -269,6 +255,31 @@ class RecordingService : Service(), LifecycleOwner {
                     lastSavedFileId = savedId
                 )
                 stopForeground(STOP_FOREGROUND_REMOVE)
+
+                // Post completion notification allowing user to tap and view in Private Vault
+                if (savedId != null) {
+                    val vaultIntent = Intent(this@RecordingService, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        putExtra("open_vault_media_id", savedId)
+                    }
+                    val vaultPendingIntent = PendingIntent.getActivity(
+                        this@RecordingService,
+                        2,
+                        vaultIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+                    val savedNotification = NotificationCompat.Builder(this@RecordingService, SecureLensApp.CHANNEL_RECORDING)
+                        .setSmallIcon(R.drawable.ic_notification_shield)
+                        .setContentTitle("Recording Saved to Vault")
+                        .setContentText("Encrypted $currentMode recording saved securely. Tap to view.")
+                        .setAutoCancel(true)
+                        .setContentIntent(vaultPendingIntent)
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                        .build()
+                    val manager = getSystemService(Context.NOTIFICATION_SERVICE) as? android.app.NotificationManager
+                    manager?.notify(1002, savedNotification)
+                }
+
                 stopSelf()
             }
         }
@@ -280,7 +291,8 @@ class RecordingService : Service(), LifecycleOwner {
         val timeString = String.format("%02d:%02d", minutes, secs)
 
         val openIntent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("navigate_to", "recorder")
         }
         val openPendingIntent = PendingIntent.getActivity(
             this,
@@ -289,12 +301,22 @@ class RecordingService : Service(), LifecycleOwner {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val pauseResumeIntent = Intent(this, RecordingService::class.java).apply {
+            action = if (isPaused) ACTION_RESUME else ACTION_PAUSE
+        }
+        val pauseResumePendingIntent = PendingIntent.getService(
+            this,
+            1,
+            pauseResumeIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         val stopIntent = Intent(this, RecordingService::class.java).apply {
             action = ACTION_STOP
         }
         val stopPendingIntent = PendingIntent.getService(
             this,
-            1,
+            2,
             stopIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -302,15 +324,22 @@ class RecordingService : Service(), LifecycleOwner {
         val title = if (mode == "AUDIO") "Audio Recording Active" else "Video Recording Active"
         val statusText = if (isPaused) "Paused · $timeString" else "Recording · $timeString"
 
-        return NotificationCompat.Builder(this, SecureLensApp.CHANNEL_RECORDING)
-            .setSmallIcon(R.mipmap.ic_launcher)
+        val builder = NotificationCompat.Builder(this, SecureLensApp.CHANNEL_RECORDING)
+            .setSmallIcon(R.drawable.ic_notification_shield)
             .setContentTitle(title)
             .setContentText(statusText)
             .setOngoing(true)
             .setContentIntent(openPendingIntent)
-            .addAction(android.R.drawable.ic_media_pause, "Stop & Save", stopPendingIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build()
+
+        if (isPaused) {
+            builder.addAction(android.R.drawable.ic_media_play, "Resume", pauseResumePendingIntent)
+        } else {
+            builder.addAction(android.R.drawable.ic_media_pause, "Pause", pauseResumePendingIntent)
+        }
+        builder.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Stop", stopPendingIntent)
+
+        return builder.build()
     }
 
     private fun updateNotification(seconds: Long, mode: String, isPaused: Boolean) {
@@ -326,12 +355,6 @@ class RecordingService : Service(), LifecycleOwner {
             instance = null
         }
         serviceScope.cancel()
-        try {
-            if (wakeLock?.isHeld == true) {
-                wakeLock?.release()
-            }
-        } catch (e: Exception) {}
-        wakeLock = null
         try {
             mediaRecorder?.release()
         } catch (e: Exception) {}

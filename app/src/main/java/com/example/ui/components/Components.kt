@@ -398,6 +398,13 @@ fun SecureBottomNav(
     currentRoute: String,
     onNavigate: (String) -> Unit
 ) {
+    val activeTab = when {
+        currentRoute == "devices" || currentRoute.startsWith("device_detail") -> "devices"
+        currentRoute == "rooms" || currentRoute.startsWith("room_detail") || currentRoute == "add_room" -> "rooms"
+        currentRoute in listOf("settings", "about", "help_support", "notification_settings", "storage_management", "language_select_settings", "scan_history") -> "settings"
+        else -> "home"
+    }
+
     NavigationBar(
         containerColor = SecureSurface,
         contentColor = SecureMuted,
@@ -415,7 +422,7 @@ fun SecureBottomNav(
         )
 
         navItems.forEach { (route, label, icon) ->
-            val isSelected = currentRoute == route
+            val isSelected = activeTab == route
             NavigationBarItem(
                 selected = isSelected,
                 onClick = { onNavigate(route) },

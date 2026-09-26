@@ -1,14 +1,13 @@
 package com.example.ui.screens.settings
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
@@ -18,284 +17,223 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.R
 import com.example.SecureLensApp
 import com.example.ui.components.*
 import com.example.ui.theme.*
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun SettingsScreen(
     onScanHistoryClick: () -> Unit,
     onPrivacySecurityClick: () -> Unit,
-    onPermissionsClick: () -> Unit,
     onNotificationsClick: () -> Unit,
     onLanguageClick: () -> Unit,
     onStorageClick: () -> Unit,
     onHelpClick: () -> Unit,
     onAboutClick: () -> Unit
 ) {
+    val settingsStore = SecureLensApp.instance.settingsStore
+    val isDark by settingsStore.isDarkMode.collectAsState(initial = false)
     val coroutineScope = rememberCoroutineScope()
-    val settings = SecureLensApp.instance.settingsStore
-    val isDark by settings.isDarkMode.collectAsState(initial = false)
-    val currentLang by settings.selectedLanguage.collectAsState(initial = "en")
-
-    val langLabel = when (currentLang) {
-        "ur" -> "اردو"
-        "hi" -> "हिन्दी"
-        "ar" -> "العربية"
-        else -> "English"
-    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(SecureBackground)
     ) {
-        AppHeader(
-            title = "Profile & Settings"
-        )
+        AppHeader(title = "Settings")
 
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 8.dp)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Profile Card matching D08
-            Card(
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = SecureSurface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+            item {
+                Text(
+                    text = "Preferences",
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        color = SecureMuted,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                )
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = SecureSurface),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(50.dp)
-                            .clip(CircleShape)
-                            .background(SecureSurfaceSoft),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Person,
-                            contentDescription = null,
-                            tint = SecurePrimary,
-                            modifier = Modifier.size(28.dp)
+                    Column {
+                        SettingsRow(
+                            title = "Dark Theme",
+                            icon = Icons.Outlined.DarkMode,
+                            trailing = {
+                                Switch(
+                                    checked = isDark,
+                                    onCheckedChange = { checked ->
+                                        coroutineScope.launch {
+                                            settingsStore.setDarkMode(checked)
+                                        }
+                                    }
+                                )
+                            }
                         )
-                    }
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Your local profile",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = SecureInk,
-                                fontSize = 16.sp
-                            )
+                        HorizontalDivider(color = SecureDivider)
+                        SettingsRow(
+                            title = "Language",
+                            icon = Icons.Outlined.Translate,
+                            onClick = onLanguageClick
                         )
-                        Text(
-                            text = "No account required · Local privacy",
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                color = SecureMuted,
-                                fontSize = 12.sp
-                            )
+                        HorizontalDivider(color = SecureDivider)
+                        SettingsRow(
+                            title = "Notifications & Alerts",
+                            icon = Icons.Outlined.Notifications,
+                            onClick = onNotificationsClick
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            item {
+                Text(
+                    text = "Security & Storage",
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        color = SecureMuted,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    modifier = Modifier.padding(top = 12.dp, bottom = 4.dp)
+                )
+            }
 
-            // Polished Raised Button Cards (no trailing arrows)
-            SettingsButtonCard(
-                title = "Scan History",
-                icon = Icons.Outlined.History,
-                onClick = onScanHistoryClick
-            )
-
-            SettingsButtonCard(
-                title = "Privacy & Security",
-                icon = Icons.Outlined.Lock,
-                onClick = onPrivacySecurityClick
-            )
-
-            SettingsButtonCard(
-                title = "Notifications",
-                icon = Icons.Outlined.Notifications,
-                onClick = onNotificationsClick
-            )
-
-            // Dark Mode Card
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SecureSurface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = SecureSurface),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(42.dp)
-                            .clip(CircleShape)
-                            .background(SecureSurfaceSoft),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Outlined.Nightlight, null, tint = SecurePrimary, modifier = Modifier.size(22.dp))
-                    }
-                    Spacer(modifier = Modifier.width(14.dp))
-                    Text(
-                        text = "Dark Mode",
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.SemiBold,
-                            color = SecureInk,
-                            fontSize = 15.sp
-                        ),
-                        modifier = Modifier.weight(1f)
-                    )
-                    Switch(
-                        checked = isDark,
-                        onCheckedChange = { coroutineScope.launch { settings.setDarkMode(it) } },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = SecurePrimary
+                    Column {
+                        SettingsRow(
+                            title = "Scan History",
+                            icon = Icons.Outlined.History,
+                            onClick = onScanHistoryClick
                         )
-                    )
+                        HorizontalDivider(color = SecureDivider)
+                        SettingsRow(
+                            title = "Vault & Privacy Security",
+                            icon = Icons.Outlined.Security,
+                            onClick = onPrivacySecurityClick
+                        )
+                        HorizontalDivider(color = SecureDivider)
+                        SettingsRow(
+                            title = "Storage Management",
+                            icon = Icons.Outlined.Storage,
+                            onClick = onStorageClick
+                        )
+                    }
                 }
             }
 
-            // Language Card
-            SettingsButtonCard(
-                title = "Language",
-                icon = Icons.Outlined.Language,
-                onClick = onLanguageClick,
-                trailingContent = {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(SecureSurfaceSoft)
-                            .padding(horizontal = 10.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = langLabel,
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = SecurePrimary,
-                                fontSize = 12.sp
-                            )
+            item {
+                Text(
+                    text = "Support & Information",
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        color = SecureMuted,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    modifier = Modifier.padding(top = 12.dp, bottom = 4.dp)
+                )
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = SecureSurface),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column {
+                        SettingsRow(
+                            title = "Help & Guide",
+                            icon = Icons.Outlined.HelpOutline,
+                            onClick = onHelpClick
+                        )
+                        HorizontalDivider(color = SecureDivider)
+                        SettingsRow(
+                            title = "About SecureLens",
+                            icon = Icons.Outlined.Info,
+                            onClick = onAboutClick
                         )
                     }
                 }
-            )
+            }
 
-            SettingsButtonCard(
-                title = "Storage Management",
-                icon = Icons.Outlined.Storage,
-                onClick = onStorageClick
-            )
-
-            SettingsButtonCard(
-                title = "Help & Support",
-                icon = Icons.Outlined.HelpOutline,
-                onClick = onHelpClick
-            )
-
-            SettingsButtonCard(
-                title = "About",
-                icon = Icons.Outlined.Info,
-                onClick = onAboutClick
-            )
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            Text(
-                text = "SecureLens · Local-first privacy tools",
-                style = MaterialTheme.typography.bodySmall.copy(
-                    color = SecureMuted.copy(alpha = 0.8f),
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
 }
 
 @Composable
-fun SettingsButtonCard(
+private fun SettingsRow(
     title: String,
     icon: ImageVector,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    trailingContent: (@Composable () -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    trailing: (@Composable () -> Unit)? = null
 ) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = SecureSurface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier = modifier
+    Row(
+        modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 5.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .clickable { onClick() }
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(SecurePrimary.copy(alpha = 0.1f)),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(42.dp)
-                    .clip(CircleShape)
-                    .background(SecureSurfaceSoft),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = SecurePrimary,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(14.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = SecureInk,
-                    fontSize = 15.sp
-                ),
-                modifier = Modifier.weight(1f)
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = SecurePrimary,
+                modifier = Modifier.size(20.dp)
             )
-            if (trailingContent != null) {
-                trailingContent()
-            }
+        }
+        Spacer(modifier = Modifier.width(14.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge.copy(
+                fontWeight = FontWeight.Medium,
+                color = SecureInk
+            ),
+            modifier = Modifier.weight(1f)
+        )
+        if (trailing != null) {
+            trailing()
+        } else if (onClick != null) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                tint = SecureMuted,
+                modifier = Modifier.size(18.dp)
+            )
         }
     }
 }
@@ -305,14 +243,19 @@ fun ScanHistoryScreen(
     onBackClick: () -> Unit,
     onStartScan: () -> Unit
 ) {
-    val sessions by SecureLensApp.instance.scanRepository.getAllSessions().collectAsState(initial = emptyList())
+    val scanRepo = SecureLensApp.instance.scanRepository
+    val sessions by scanRepo.getAllSessions().collectAsState(initial = emptyList())
+    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy · HH:mm", Locale.getDefault()) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(SecureBackground)
     ) {
-        AppHeader(title = "Scan History", onBackClick = onBackClick)
+        AppHeader(
+            title = "Scan History",
+            onBackClick = onBackClick
+        )
 
         if (sessions.isEmpty()) {
             Box(
@@ -322,79 +265,74 @@ fun ScanHistoryScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(
-                        modifier = Modifier
-                            .size(72.dp)
-                            .clip(CircleShape)
-                            .background(SecureSurfaceSoft),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Outlined.History, null, tint = SecurePrimary, modifier = Modifier.size(36.dp))
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Icon(
+                        imageVector = Icons.Outlined.History,
+                        contentDescription = null,
+                        modifier = Modifier.size(56.dp),
+                        tint = SecureMuted
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "No scans yet",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SecureInk)
+                        text = "No Previous Scans",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = SecureInk
+                        )
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "Your user-started scan history will appear here.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted, textAlign = TextAlign.Center)
+                        text = "Start a Wi-Fi, Bluetooth or Magnetic scan to log security history.",
+                        style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted),
+                        textAlign = TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    PrimaryGradientButton(text = "Start a Scan", onClick = onStartScan)
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Button(
+                        onClick = onStartScan,
+                        colors = ButtonDefaults.buttonColors(containerColor = SecurePrimary)
+                    ) {
+                        Text("Start Scan Now")
+                    }
                 }
             }
         } else {
-            val format = SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault())
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(bottom = 20.dp)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(sessions, key = { it.id }) { session ->
+                items(sessions) { s ->
                     Card(
-                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = SecureSurface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 1.5.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .padding(14.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(42.dp)
-                                    .clip(CircleShape)
-                                    .background(SecureSurfaceSoft),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = if (session.method == "WIFI") Icons.Outlined.Wifi else Icons.Outlined.Bluetooth,
-                                    contentDescription = null,
-                                    tint = SecurePrimary,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(14.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "${session.method} scan",
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.SemiBold,
+                                    text = "${s.method} Scan",
+                                    style = MaterialTheme.typography.titleSmall.copy(
+                                        fontWeight = FontWeight.Bold,
                                         color = SecureInk
                                     )
                                 )
                                 Text(
-                                    text = "${format.format(Date(session.startedAt))} · ${session.devicesCount} devices",
-                                    style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted, fontSize = 12.sp)
+                                    text = dateFormat.format(Date(s.startedAt)),
+                                    style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted)
                                 )
                             }
+                            Text(
+                                text = "${s.devicesCount} devices",
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    color = if (s.suspiciousCount > 0) SecureAlert else SecureSuccess,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
                         }
                     }
                 }
@@ -404,106 +342,54 @@ fun ScanHistoryScreen(
 }
 
 @Composable
-fun NotificationSettingsScreen(
-    onBackClick: () -> Unit
-) {
+fun NotificationSettingsScreen(onBackClick: () -> Unit) {
+    val settingsStore = SecureLensApp.instance.settingsStore
+    val alertsEnabled by settingsStore.securityAlerts.collectAsState(initial = true)
+    val scanNotif by settingsStore.scanNotifications.collectAsState(initial = false)
     val coroutineScope = rememberCoroutineScope()
-    val settings = SecureLensApp.instance.settingsStore
-    val securityAlerts by settings.securityAlerts.collectAsState(initial = true)
-    val scanNotif by settings.scanNotifications.collectAsState(initial = false)
-    val vaultReminders by settings.vaultReminders.collectAsState(initial = false)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(SecureBackground)
     ) {
-        AppHeader(title = "Notifications", onBackClick = onBackClick)
+        AppHeader(title = "Notification Settings", onBackClick = onBackClick)
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(20.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Card(
-                shape = RoundedCornerShape(18.dp),
+                modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = SecureSurface),
-                modifier = Modifier.fillMaxWidth()
+                shape = RoundedCornerShape(16.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text("Security events", fontWeight = FontWeight.SemiBold)
-                            Text("Supported unlock-failure alerts", style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted))
+                Column {
+                    SettingsRow(
+                        title = "Security & Intruder Alerts",
+                        icon = Icons.Outlined.NotificationsActive,
+                        trailing = {
+                            Switch(
+                                checked = alertsEnabled,
+                                onCheckedChange = { coroutineScope.launch { settingsStore.setSecurityAlerts(it) } }
+                            )
                         }
-                        Switch(
-                            checked = securityAlerts,
-                            onCheckedChange = { coroutineScope.launch { settings.setSecurityAlerts(it) } }
-                        )
-                    }
-
-                    HorizontalDivider(color = SecureDivider, modifier = Modifier.padding(vertical = 12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text("Recording status", fontWeight = FontWeight.SemiBold)
-                            Text("Required visible foreground status", style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted))
+                    )
+                    HorizontalDivider(color = SecureDivider)
+                    SettingsRow(
+                        title = "Scan Summary Notifications",
+                        icon = Icons.Outlined.Assessment,
+                        trailing = {
+                            Switch(
+                                checked = scanNotif,
+                                onCheckedChange = { coroutineScope.launch { settingsStore.setScanNotifications(it) } }
+                            )
                         }
-                        Switch(checked = true, onCheckedChange = {}, enabled = false)
-                    }
-
-                    HorizontalDivider(color = SecureDivider, modifier = Modifier.padding(vertical = 12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text("Scan completion", fontWeight = FontWeight.SemiBold)
-                            Text("When a user-started scan finishes", style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted))
-                        }
-                        Switch(
-                            checked = scanNotif,
-                            onCheckedChange = { coroutineScope.launch { settings.setScanNotifications(it) } }
-                        )
-                    }
-
-                    HorizontalDivider(color = SecureDivider, modifier = Modifier.padding(vertical = 12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text("Vault reminders", fontWeight = FontWeight.SemiBold)
-                            Text("Private auto-lock notifications", style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted))
-                        }
-                        Switch(
-                            checked = vaultReminders,
-                            onCheckedChange = { coroutineScope.launch { settings.setVaultReminders(it) } }
-                        )
-                    }
+                    )
                 }
             }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            PrimaryGradientButton(
-                text = "Save Preferences",
-                onClick = onBackClick
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -513,10 +399,6 @@ fun StorageManagementScreen(
     onBackClick: () -> Unit,
     onOpenVault: () -> Unit
 ) {
-    val media by SecureLensApp.instance.vaultRepository.getAllMedia().collectAsState(initial = emptyList())
-    val totalBytes = media.sumOf { it.fileSize }
-    val totalMb = (totalBytes / (1024 * 1024)).coerceAtLeast(1)
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -527,105 +409,179 @@ fun StorageManagementScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(20.dp)
+                .padding(16.dp)
         ) {
             Card(
-                shape = RoundedCornerShape(18.dp),
+                modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = SecureSurface),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(18.dp)) {
-                    Text("Private storage", style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted))
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "$totalMb MB",
-                        style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold, color = SecureInk)
-                    )
-                    Text("Total encrypted files storage", style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted))
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // Progress bar
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp))
-                            .background(ScannerRing2)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .fillMaxWidth(0.35f)
-                                .clip(RoundedCornerShape(3.dp))
-                                .background(PrimaryBlueGradient)
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Card(
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = SecureSurface),
-                modifier = Modifier.fillMaxWidth()
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Outlined.Image, null, tint = SecurePrimary)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text("Photos", fontWeight = FontWeight.SemiBold)
-                        }
-                        Text("${media.count { it.mediaKind == "PHOTO" }} files", color = SecureMuted)
-                    }
-                    HorizontalDivider(color = SecureDivider, modifier = Modifier.padding(vertical = 12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Outlined.Videocam, null, tint = SecurePrimary)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text("Videos", fontWeight = FontWeight.SemiBold)
-                        }
-                        Text("${media.count { it.mediaKind == "VIDEO" }} files", color = SecureMuted)
-                    }
-                    HorizontalDivider(color = SecureDivider, modifier = Modifier.padding(vertical = 12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Outlined.Mic, null, tint = SecurePrimary)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text("Audio", fontWeight = FontWeight.SemiBold)
-                        }
-                        Text("${media.count { it.mediaKind == "AUDIO" }} files", color = SecureMuted)
-                    }
+                    Text(
+                        text = "Encrypted Vault Storage",
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = SecureInk
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "All recorded evidence is stored securely in app-private storage. You can view or delete files inside the vault.",
+                        style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    PrimaryGradientButton(
+                        text = "Open Encrypted Vault",
+                        onClick = onOpenVault,
+                        testTag = "btn_open_vault_storage"
+                    )
                 }
             }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            PrimaryGradientButton(text = "Open Vault", onClick = onOpenVault)
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
 @Composable
-fun HelpSupportScreen(
-    onBackClick: () -> Unit
-) {
+fun HelpSupportScreen(onBackClick: () -> Unit) {
+    var expandedTopicId by remember { mutableStateOf<String?>(null) }
+
+    val topics = remember {
+        listOf(
+            HelpTopic(
+                id = "camera_detection",
+                title = "1. Camera Detection (Optical Lens Finder)",
+                icon = Icons.Outlined.CameraAlt,
+                summary = "How optical lens detection works and how to find hidden pinhole lenses.",
+                instructions = listOf(
+                    "Turn off room lights or draw blinds so the area is as dark as possible.",
+                    "Open Optical Lens Finder and switch on the reflection strobe flash.",
+                    "Slowly sweep suspicious fixtures: smoke detectors, picture frames, mirrors, wall clocks, and outlets.",
+                    "Look through the viewfinder for sharp pinpoint glints reflecting off optical camera glass.",
+                    "When a suspicious glint is located, tap 'Save Proof to Vault' to capture encrypted evidence."
+                )
+            ),
+            HelpTopic(
+                id = "wifi_scan",
+                title = "2. Wi-Fi Network Scanner",
+                icon = Icons.Outlined.Wifi,
+                summary = "How to scan local network subnets and interpret surveillance device findings.",
+                instructions = listOf(
+                    "Connect your phone to the local Wi-Fi network of the premises.",
+                    "Launch the Wi-Fi Scanner to sweep all IP addresses connected to the local subnet (LAN).",
+                    "The scanner analyzes hostnames, MAC vendor prefixes, and known streaming ports (RTSP, HTTP 8080, ONVIF).",
+                    "Devices classified as 'Needs Review' represent potential wireless IP streaming cameras.",
+                    "Review device details to note the IP address and hardware manufacturer for your inspection record."
+                )
+            ),
+            HelpTopic(
+                id = "bluetooth_scan",
+                title = "3. Bluetooth BLE Scanner",
+                icon = Icons.Outlined.Bluetooth,
+                summary = "How to discover nearby beacons, audio bugs, and covert transmitters.",
+                instructions = listOf(
+                    "Ensure Bluetooth is enabled on your phone and start the Bluetooth BLE Scan.",
+                    "The scanner detects active RF beacons, covert wireless microphones, and unknown trackers.",
+                    "Walk slowly across the room while observing signal strength (measured in dBm).",
+                    "A signal strength rising towards -40 dBm indicates you are getting closer to the broadcasting device.",
+                    "Log suspected devices to investigate further or add them to your room inventory."
+                )
+            ),
+            HelpTopic(
+                id = "magnetic_scan",
+                title = "4. Magnetic Field Meter (EMF)",
+                icon = Icons.Outlined.Sensors,
+                summary = "Sensor readings (µT), warning colors, and audio beep alerts.",
+                instructions = listOf(
+                    "Hold your phone near walls, mirrors, electrical plates, and suspected electronic housings.",
+                    "SecureLens measures magnetic flux in microteslas (µT) using your phone's built-in magnetometer.",
+                    "Color Indicators: Green (<45 µT) is normal background. Orange (45–75 µT) indicates caution. Red (>75 µT) signals an active electromagnetic anomaly.",
+                    "Audio Alerts: Beep frequency increases in tempo as you approach magnetic coils, speakers, and transformers.",
+                    "Keep away from metal zippers or phone cases with magnetic kickstands while scanning."
+                )
+            ),
+            HelpTopic(
+                id = "thermal_view",
+                title = "5. Thermal View Simulation",
+                icon = Icons.Outlined.DeviceThermostat,
+                summary = "How to use thermal simulation to locate warm, continuously running electronics.",
+                instructions = listOf(
+                    "Hidden surveillance cameras generate continuous heat from microprocessors and power components.",
+                    "Use Thermal View to simulate localized heat dissipation patterns for training and inspection drills.",
+                    "Physically inspect any object that feels unusually warm to the touch (e.g. wall adapters, screws, or vents).",
+                    "Combine physical heat checks with the optical lens finder for comprehensive verification."
+                )
+            ),
+            HelpTopic(
+                id = "secure_recorder",
+                title = "6. Secure Video & Audio Recorder",
+                icon = Icons.Outlined.Videocam,
+                summary = "Step-by-step video and audio evidence recording instructions.",
+                instructions = listOf(
+                    "Open Secure Recorder from the Home screen or Quick Actions.",
+                    "Select Video Mode for live camera viewfinder recording, or Audio Mode for audio memos.",
+                    "Tap the red Record button to start capturing tamper-evident security footage.",
+                    "All evidence is captured with precise timestamps, location metadata, and file checksums.",
+                    "Recordings are saved directly to encrypted app-private storage, hidden from the public gallery."
+                )
+            ),
+            HelpTopic(
+                id = "background_recording",
+                title = "7. Background Recording & Notification",
+                icon = Icons.Outlined.PlayCircle,
+                summary = "How to start, pause, resume, and stop recording from the background.",
+                instructions = listOf(
+                    "Start a recording session manually inside SecureLens while the app is active.",
+                    "You can now minimize the app or lock your screen—an Android Foreground Service keeps capturing.",
+                    "Use the persistent notification in your status bar to control the recording at any time:",
+                    "• Pause: Temporarily pauses recording without closing the file.",
+                    "• Resume: Continues capturing in the same session.",
+                    "• Stop: Finalizes, encrypts, and safely stores the recording into your Private Vault.",
+                    "Tapping the notification opens the active recording screen or completed vault file."
+                )
+            ),
+            HelpTopic(
+                id = "private_vault",
+                title = "8. Private Vault Storage",
+                icon = Icons.Outlined.Lock,
+                summary = "Saving, viewing, playing, and managing encrypted media.",
+                instructions = listOf(
+                    "Open the Private Vault and authenticate using your 6-digit PIN or device biometrics.",
+                    "All videos, audio memos, and optical photos are protected with hardware-backed AES-256 encryption.",
+                    "Tap any media thumbnail to play video, listen to audio recordings, or review capture metadata.",
+                    "Export files or permanently delete evidence with a single tap.",
+                    "Vault contents are completely isolated and inaccessible to other third-party phone apps."
+                )
+            ),
+            HelpTopic(
+                id = "intruder_guard",
+                title = "9. Intruder Guard & Break-in Detection",
+                icon = Icons.Outlined.Shield,
+                summary = "Setup, failed-unlock threshold, and security-event history.",
+                instructions = listOf(
+                    "Open Intruder Guard and activate the Android Device Administrator profile when prompted.",
+                    "Set your failed-unlock threshold (e.g., 1, 2, or 3 incorrect passcode attempts).",
+                    "When an unauthorized person enters the wrong passcode, the exact timestamp is recorded.",
+                    "A silent photograph is taken and logged to the security event history where Android allows camera access.",
+                    "Open Intruder History at any time to review unauthorized attempts and intruder snapshots."
+                )
+            ),
+            HelpTopic(
+                id = "permissions_privacy",
+                title = "10. Required Permissions & Privacy",
+                icon = Icons.Outlined.Key,
+                summary = "How to grant, verify, or update necessary device permissions.",
+                instructions = listOf(
+                    "Camera: Required for optical lens finder glint sweeps and video recording.",
+                    "Microphone: Required for recording audio evidence and voice memos.",
+                    "Location & Nearby Devices: Required by Android OS to scan Wi-Fi networks and BLE beacons.",
+                    "Notifications: Required for recording status controls (Pause/Resume/Stop) and intruder alerts.",
+                    "Device Administrator: Optional, used solely for detecting failed lock-screen passcode attempts.",
+                    "To change permissions anytime: Open Android Settings > Apps > SecureLens > Permissions."
+                )
+            )
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -633,167 +589,148 @@ fun HelpSupportScreen(
     ) {
         AppHeader(title = "Help & Support", onBackClick = onBackClick)
 
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(20.dp)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Text(
-                text = "How can we help?",
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold, color = SecureInk)
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = "Explore tips to use your privacy tools responsibly. Tap any topic to view its full explanation.",
-                style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted)
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            val helpTopics = listOf(
-                HelpTopicData(
-                    title = "How camera detection works",
-                    subtitle = "Optical glint, reflections and network clues.",
-                    icon = Icons.Outlined.RemoveRedEye,
-                    explanation = "Hidden pinhole lenses rely on curved optical glass that retro-reflects incident light back to the source.\nBy moving your camera flashlight slowly across suspicious fixtures, mirrors, and smoke detectors, bright specular pinpoint reflections reveal hidden lenses.\nPair optical searches with local Wi-Fi scanning to inspect active streaming endpoints.\nRemember: optical scanning is a visual aid and cannot guarantee complete detection alone."
-                ),
-                HelpTopicData(
-                    title = "Wi-Fi scanning and network limits",
-                    subtitle = "Permissions, discovery, and IP camera checks.",
-                    icon = Icons.Outlined.Wifi,
-                    explanation = "Wi-Fi scanning queries the local subnet to identify devices advertising known streaming protocols such as RTSP (port 554), ONVIF, and surveillance HTTP endpoints.\nAndroid requires fine location permissions to perform network scans to prevent unauthorized geolocation tracking.\nSome privacy-hardened devices or hidden cameras on separate VLANs or cellular uplinks may not appear on standard Wi-Fi scans.\nAlways cross-reference with magnetic and physical inspection."
-                ),
-                HelpTopicData(
-                    title = "Bluetooth device detection",
-                    subtitle = "Nearby wireless beacons, BLE tags, and RSSI.",
-                    icon = Icons.Outlined.Bluetooth,
-                    explanation = "The Bluetooth scanner detects nearby Bluetooth Low Energy (BLE) peripherals and broadcasts.\nSignal strength (RSSI) indicates relative proximity; moving closer to a device increases the dBm reading toward -40 dBm.\nModern trackers and wireless spy gadgets periodically advertise identifiers, allowing you to discover unregistered hardware.\nAndroid permission is required for Bluetooth scanning to safeguard user privacy."
-                ),
-                HelpTopicData(
-                    title = "Magnetic sensor tips",
-                    subtitle = "Calibrating and interpreting magnetic fields.",
-                    icon = Icons.Outlined.Explore,
-                    explanation = "Your device magnetometer measures magnetic flux density in microteslas (µT).\nSpeakers, motors, circuit transformers, and camera coils produce elevated magnetic fields when measured in close proximity.\nTo calibrate the sensor, gently wave your phone in a figure-8 motion in an open area away from large metal objects.\nElevated readings alone indicate magnetic materials or electronics, not definitive proof of a surveillance camera."
-                ),
-                HelpTopicData(
-                    title = "Recording and background usage",
-                    subtitle = "Foreground services, notifications, and media security.",
-                    icon = Icons.Outlined.Videocam,
-                    explanation = "SecureLens uses an ongoing Android foreground service to manage active video and audio recording sessions.\nA persistent system notification is required by Android to guarantee that no stealth background recording occurs without your knowledge.\nRecordings are held in private application memory and encrypted immediately upon stopping.\nBattery optimization settings may pause recording if the app is minimized for extended durations."
-                ),
-                HelpTopicData(
-                    title = "Private vault",
-                    subtitle = "Local encryption, optional PIN, and file storage.",
-                    icon = Icons.Outlined.Lock,
-                    explanation = "The Private Vault stores captured photos, videos, and security logs in encrypted form using AES-256-GCM cipher keys stored securely in the hardware Android Keystore.\nVault PIN protection is completely optional during onboarding and can be toggled on or off in Privacy & Security settings.\nEven when PIN protection is disabled, all underlying media files remain strongly encrypted against filesystem access.\nExporting media allows you to safely save copies to external storage whenever desired."
-                ),
-                HelpTopicData(
-                    title = "Screen and Android limitations",
-                    subtitle = "Operating system restrictions on camera and lock-screen.",
-                    icon = Icons.Outlined.Smartphone,
-                    explanation = "Modern Android releases strictly prohibit background services or receivers from silently capturing photos while the screen is locked.\nWhen a failed unlock attempt occurs, SecureLens accurately logs the security timestamp and failure count, but does not capture unauthorized background photos.\nThis design respects core Android security architecture and prevents fraudulent camera usage.\nInteractive testing of intruder detection can be performed safely while the app is active."
-                ),
-                HelpTopicData(
-                    title = "Thermal view",
-                    subtitle = "Demonstration false-color heatmap simulation.",
-                    icon = Icons.Outlined.DeviceThermostat,
-                    explanation = "The Thermal View provides an educational false-color palette simulation based on standard camera luminance and color contrast.\nStandard smartphone camera sensors detect visible light, not long-wave infrared thermal radiation.\nTrue thermal heat detection requires dedicated external thermal imaging hardware such as FLIR or Seek thermal sensors.\nUse the thermal simulator to spot high-contrast hotspots and reflective surfaces in dim environments."
+            item {
+                Text(
+                    text = "Guides & Security Topics",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = SecureInk
+                    ),
+                    modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)
                 )
-            )
+                Text(
+                    text = "Tap any topic below to expand comprehensive step-by-step instructions.",
+                    style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+            }
 
-            var expandedIndex by remember { mutableIntStateOf(-1) }
-
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                helpTopics.forEachIndexed { index, topic ->
-                    val isExpanded = expandedIndex == index
-                    Card(
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = SecureSurface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(16.dp))
-                            .clickable {
-                                expandedIndex = if (isExpanded) -1 else index
-                            }
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
+            items(topics) { topic ->
+                val isExpanded = expandedTopicId == topic.id
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            expandedTopicId = if (isExpanded) null else topic.id
+                        }
+                        .testTag("help_topic_${topic.id}"),
+                    colors = CardDefaults.cardColors(containerColor = SecureSurface),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = if (isExpanded) 3.dp else 1.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(SecurePrimary.copy(alpha = 0.1f)),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(42.dp)
-                                        .clip(CircleShape)
-                                        .background(SecureSurfaceSoft),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(topic.icon, null, tint = SecurePrimary, modifier = Modifier.size(22.dp))
-                                }
-                                Spacer(modifier = Modifier.width(14.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = topic.title,
-                                        fontWeight = FontWeight.Bold,
-                                        color = SecureInk,
-                                        fontSize = 15.sp
-                                    )
-                                    Text(
-                                        text = topic.subtitle,
-                                        style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted, fontSize = 12.sp)
-                                    )
-                                }
                                 Icon(
-                                    imageVector = if (isExpanded) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
-                                    contentDescription = if (isExpanded) "Collapse" else "Expand",
-                                    tint = SecureMuted,
-                                    modifier = Modifier.size(20.dp)
+                                    imageVector = topic.icon,
+                                    contentDescription = null,
+                                    tint = SecurePrimary,
+                                    modifier = Modifier.size(22.dp)
                                 )
                             }
-
-                            if (isExpanded) {
-                                Spacer(modifier = Modifier.height(12.dp))
-                                HorizontalDivider(color = SecureDivider)
-                                Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = topic.explanation,
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        color = SecureInk,
-                                        fontSize = 13.sp,
-                                        lineHeight = 20.sp
+                                    text = topic.title,
+                                    style = MaterialTheme.typography.titleSmall.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = SecureInk
                                     )
                                 )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = topic.summary,
+                                    style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted)
+                                )
+                            }
+                            Icon(
+                                imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                contentDescription = if (isExpanded) "Collapse" else "Expand",
+                                tint = SecureMuted,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+
+                        if (isExpanded) {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 12.dp),
+                                color = SecureDivider
+                            )
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                topic.instructions.forEachIndexed { index, step ->
+                                    Row(
+                                        verticalAlignment = Alignment.Top,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text(
+                                            text = "•",
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                color = SecurePrimary,
+                                                fontWeight = FontWeight.Bold
+                                            ),
+                                            modifier = Modifier.padding(end = 8.dp)
+                                        )
+                                        Text(
+                                            text = step,
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                color = SecureInk,
+                                                lineHeight = 20.sp
+                                            ),
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
 }
 
-private data class HelpTopicData(
+private data class HelpTopic(
+    val id: String,
     val title: String,
-    val subtitle: String,
     val icon: ImageVector,
-    val explanation: String
+    val summary: String,
+    val instructions: List<String>
 )
 
 @Composable
-fun AboutScreen(
-    onBackClick: () -> Unit
-) {
+fun AboutScreen(onBackClick: () -> Unit) {
+    val context = LocalContext.current
+    val versionName = remember {
+        try {
+            val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            pInfo.versionName ?: "1.0.0"
+        } catch (_: Exception) {
+            "1.0.0"
+        }
+    }
+
+    var showPrivacyDialog by remember { mutableStateOf(false) }
+    var showTermsDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -801,55 +738,216 @@ fun AboutScreen(
     ) {
         AppHeader(title = "About SecureLens", onBackClick = onBackClick)
 
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Box(
-                modifier = Modifier
-                    .size(76.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(PrimaryBlueGradient),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Filled.Shield, null, tint = Color.White, modifier = Modifier.size(44.dp))
-                Icon(Icons.Filled.CameraAlt, null, tint = SecureInk, modifier = Modifier.size(20.dp))
-            }
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            Text("SecureLens", style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold, color = SecureInk))
-            Text("Smart privacy tools · Version 1.0", style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted))
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Card(
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = SecureSurface),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Privacy Principles", fontWeight = FontWeight.Bold, color = SecureInk)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        "• Local-first storage: all scans and captures remain on your device.\n• No cloud upload without your explicit action.\n• Honest sensor representation and transparent permissions.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted, lineHeight = 18.sp)
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                Box(
+                    modifier = Modifier
+                        .size(88.dp)
+                        .clip(CircleShape)
+                        .background(SecurePrimary.copy(alpha = 0.12f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.ic_securelens_logo),
+                        contentDescription = "SecureLens Logo",
+                        modifier = Modifier.size(54.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            item {
+                Text(
+                    text = "SecureLens",
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = SecureInk
+                    )
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "Version $versionName",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = SecureMuted,
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+            }
 
-            Text(
-                "Designed for native Android with Kotlin & Jetpack Compose.",
-                style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted, fontSize = 11.sp)
-            )
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = SecureSurface),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(18.dp)) {
+                        Text(
+                            text = "A privacy and hidden electronics scanner designed to help individuals inspect surroundings, safeguard private rooms, and encrypt security evidence.",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = SecureInk,
+                                textAlign = TextAlign.Center,
+                                lineHeight = 22.sp
+                            )
+                        )
+                    }
+                }
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = SecureSurface),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showPrivacyDialog = true }
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Policy,
+                                contentDescription = null,
+                                tint = SecurePrimary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = "Privacy Policy",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = FontWeight.Medium,
+                                    color = SecureInk
+                                ),
+                                modifier = Modifier.weight(1f)
+                            )
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = null,
+                                tint = SecureMuted,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        HorizontalDivider(color = SecureDivider)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showTermsDialog = true }
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Gavel,
+                                contentDescription = null,
+                                tint = SecurePrimary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = "Terms of Service",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = FontWeight.Medium,
+                                    color = SecureInk
+                                ),
+                                modifier = Modifier.weight(1f)
+                            )
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = null,
+                                tint = SecureMuted,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "© 2026 SecureLens. All rights reserved.",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = SecureMuted,
+                        textAlign = TextAlign.Center
+                    )
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
+    }
+
+    if (showPrivacyDialog) {
+        AlertDialog(
+            onDismissRequest = { showPrivacyDialog = false },
+            title = {
+                Text(
+                    text = "Privacy Policy",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = SecureInk
+                    )
+                )
+            },
+            text = {
+                Text(
+                    text = "SecureLens is built with privacy-by-design principles:\n\n" +
+                            "• 100% Local Processing: All camera viewfinders, Wi-Fi subnet sweeps, Bluetooth discovery, and magnetic sensor measurements run entirely on your device.\n\n" +
+                            "• Zero Cloud Telemetry: SecureLens does not collect, transmit, or sell your personal data, audio, video recordings, or location logs.\n\n" +
+                            "• Hardware Encryption: Media saved in your Private Vault is protected using AES-256 encryption backed by Android Keystore.",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = SecureInk,
+                        lineHeight = 20.sp
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showPrivacyDialog = false }) {
+                    Text("Close", color = SecurePrimary)
+                }
+            },
+            containerColor = SecureSurface,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
+    if (showTermsDialog) {
+        AlertDialog(
+            onDismissRequest = { showTermsDialog = false },
+            title = {
+                Text(
+                    text = "Terms of Service",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = SecureInk
+                    )
+                )
+            },
+            text = {
+                Text(
+                    text = "SecureLens is provided as a personal security inspection and privacy tool.\n\n" +
+                            "• Legitimate Use: The detection tools are intended for inspecting your private premises, hotel rooms, rentals, and personal belongings.\n\n" +
+                            "• Compliance: Users are solely responsible for adhering to applicable privacy laws and recording regulations in their jurisdiction.\n\n" +
+                            "• Warranty: SecureLens provides detection tools on an 'as-is' basis to assist with manual inspections.",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = SecureInk,
+                        lineHeight = 20.sp
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showTermsDialog = false }) {
+                    Text("Close", color = SecurePrimary)
+                }
+            },
+            containerColor = SecureSurface,
+            shape = RoundedCornerShape(16.dp)
+        )
     }
 }

@@ -1,22 +1,13 @@
 package com.example.ui.screens.vault
 
-import android.content.Intent
-import android.media.MediaPlayer
-import android.net.Uri
-import android.widget.MediaController
-import android.widget.VideoView
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -26,250 +17,210 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import coil.compose.AsyncImage
 import com.example.SecureLensApp
 import com.example.data.local.entity.VaultMediaEntity
 import com.example.ui.components.*
-import com.example.ui.screens.onboarding.NumericKeypad
 import com.example.ui.theme.*
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.io.File
 
 @Composable
 fun VaultUnlockScreen(
     onUnlockSuccess: () -> Unit,
     onBackClick: () -> Unit
 ) {
+    val settingsStore = SecureLensApp.instance.settingsStore
+    val coroutineScope = rememberCoroutineScope()
     var enteredPin by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    val savedPin by SecureLensApp.instance.settingsStore.vaultPin.collectAsState(initial = null)
-    val coroutineScope = rememberCoroutineScope()
-    var showSetPinDialog by remember { mutableStateOf(false) }
-    var newPinCandidate by remember { mutableStateOf("") }
+    var storedPin by remember { mutableStateOf<String?>(null) }
+    var isCheckingPin by remember { mutableStateOf(true) }
 
-    if (savedPin != null && savedPin!!.isEmpty()) {
-        AlertDialog(
-            onDismissRequest = { /* force choice */ },
-            title = {
-                Text(
-                    text = "Vault PIN Protection",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = SecureInk
-                    )
-                )
-            },
-            text = {
-                Text(
-                    text = "You skipped setting a PIN during onboarding. Would you like to create a 6-digit PIN now to protect your private media, or proceed without a password?",
-                    style = MaterialTheme.typography.bodyMedium.copy(color = SecureMuted)
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = { showSetPinDialog = true }
-                ) {
-                    Text("Set PIN Now", fontWeight = FontWeight.Bold, color = SecurePrimary)
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { onUnlockSuccess() }
-                ) {
-                    Text("Open Vault Directly", color = SecureMuted)
-                }
-            },
-            containerColor = SecureSurface
-        )
+    LaunchedEffect(Unit) {
+        val pin = settingsStore.vaultPin.first()
+        val enabled = settingsStore.isVaultPasswordEnabled.first()
+        storedPin = pin
+        if (!enabled || pin.isNullOrBlank()) {
+            // Password not configured or disabled: open vault directly
+            onUnlockSuccess()
+        } else {
+            isCheckingPin = false
+        }
     }
 
-    if (showSetPinDialog) {
-        AlertDialog(
-            onDismissRequest = { showSetPinDialog = false },
-            title = {
-                Text(
-                    text = "Enter 6-digit PIN",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = SecureInk
-                    )
-                )
-            },
-            text = {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "Enter 6 digits using the keypad below to protect your vault:",
-                        style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        repeat(6) { index ->
-                            val isFilled = index < newPinCandidate.length
-                            Box(
-                                modifier = Modifier
-                                    .padding(horizontal = 4.dp)
-                                    .size(12.dp)
-                                    .clip(CircleShape)
-                                    .background(if (isFilled) SecurePrimary else ScannerRing3)
-                            )
-                        }
-                    }
+    if (isCheckingPin) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(SecureBackground),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = SecurePrimary)
+        }
+        return
+    }
+
+    fun handleDigit(d: String) {
+        if (enteredPin.length < 6) {
+            val next = enteredPin + d
+            enteredPin = next
+            if (next.length == 6) {
+                if (storedPin == null || storedPin == next) {
+                    onUnlockSuccess()
+                } else {
+                    errorMessage = "Incorrect PIN. Please try again."
+                    enteredPin = ""
                 }
-            },
-            confirmButton = {
-                if (newPinCandidate.length == 6) {
-                    TextButton(
-                        onClick = {
-                            coroutineScope.launch {
-                                SecureLensApp.instance.settingsStore.setVaultPin(newPinCandidate)
-                                showSetPinDialog = false
-                                onUnlockSuccess()
-                            }
-                        }
-                    ) {
-                        Text("Save & Open", fontWeight = FontWeight.Bold, color = SecurePrimary)
-                    }
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        showSetPinDialog = false
-                        newPinCandidate = ""
-                    }
-                ) {
-                    Text("Cancel", color = SecureMuted)
-                }
-            },
-            containerColor = SecureSurface
-        )
+            }
+        }
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(SecureBackground)
-            .padding(horizontal = 24.dp, vertical = 20.dp),
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
-            IconButton(onClick = onBackClick) {
-                Icon(Icons.Outlined.ArrowBack, contentDescription = "Back", tint = SecureInk)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Box(
-            modifier = Modifier
-                .size(76.dp)
-                .clip(CircleShape)
-                .background(SecureSurfaceSoft),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Lock,
-                contentDescription = null,
-                tint = SecurePrimary,
-                modifier = Modifier.size(38.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = "Private Vault",
-            style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight = FontWeight.Bold,
-                color = SecureInk,
-                fontSize = 28.sp
-            )
-        )
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        Text(
-            text = "Enter your PIN to access encrypted media.",
-            style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted, fontSize = 13.sp)
+        AppHeader(
+            title = "Private Vault",
+            onBackClick = onBackClick
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 6 PIN dots
+        Box(
+            modifier = Modifier
+                .size(72.dp)
+                .clip(CircleShape)
+                .background(SecurePrimary.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Lock,
+                contentDescription = null,
+                tint = SecurePrimary,
+                modifier = Modifier.size(36.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Enter 6-Digit Vault PIN",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Bold,
+                color = SecureInk
+            )
+        )
+        Text(
+            text = "Keep your recordings and logs secured with local AES encryption.",
+            style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted),
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // PIN dots
         Row(
-            horizontalArrangement = Arrangement.Center,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            repeat(6) { index ->
-                val isFilled = index < enteredPin.length
+            for (i in 0 until 6) {
+                val filled = i < enteredPin.length
                 Box(
                     modifier = Modifier
-                        .padding(horizontal = 6.dp)
-                        .size(14.dp)
+                        .size(16.dp)
                         .clip(CircleShape)
-                        .background(if (isFilled) SecurePrimary else ScannerRing3)
+                        .background(if (filled) SecurePrimary else SecureSurfaceSoft)
                 )
             }
         }
 
         if (errorMessage != null) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = errorMessage ?: "",
-                style = MaterialTheme.typography.bodySmall.copy(color = SecureAlert, fontSize = 12.sp)
+                color = SecureAlert,
+                style = MaterialTheme.typography.bodySmall
             )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Numeric Keypad
+        val keys = listOf(
+            listOf("1", "2", "3"),
+            listOf("4", "5", "6"),
+            listOf("7", "8", "9"),
+            listOf("", "0", "DEL")
+        )
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            for (row in keys) {
+                Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                    for (k in row) {
+                        if (k.isEmpty()) {
+                            Spacer(modifier = Modifier.size(64.dp))
+                        } else if (k == "DEL") {
+                            IconButton(
+                                onClick = {
+                                    if (enteredPin.isNotEmpty()) {
+                                        enteredPin = enteredPin.dropLast(1)
+                                        errorMessage = null
+                                    }
+                                },
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .testTag("key_del")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Backspace,
+                                    contentDescription = "Delete",
+                                    tint = SecureInk
+                                )
+                            }
+                        } else {
+                            Surface(
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .clickable { handleDigit(k) }
+                                    .testTag("key_$k"),
+                                shape = CircleShape,
+                                color = SecureSurface
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = k,
+                                        style = MaterialTheme.typography.titleLarge.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = SecureInk
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
-        NumericKeypad(
-            onNumberClick = { num ->
-                if (showSetPinDialog) {
-                    if (newPinCandidate.length < 6) {
-                        newPinCandidate += num
-                    }
-                } else if (enteredPin.length < 6) {
-                    val newPin = enteredPin + num
-                    enteredPin = newPin
-                    if (newPin.length == 6) {
-                        if (savedPin.isNullOrEmpty() || newPin == savedPin) {
-                            onUnlockSuccess()
-                        } else {
-                            errorMessage = "Incorrect PIN. Try again."
-                            enteredPin = ""
-                        }
-                    }
-                }
-            },
-            onDeleteClick = {
-                if (showSetPinDialog) {
-                    if (newPinCandidate.isNotEmpty()) {
-                        newPinCandidate = newPinCandidate.dropLast(1)
-                    }
-                } else if (enteredPin.isNotEmpty()) {
-                    enteredPin = enteredPin.dropLast(1)
-                    errorMessage = null
-                }
-            },
-            onBiometricClick = {
-                // Biometric shortcut
-                onUnlockSuccess()
-            }
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
+        TextButton(
+            onClick = onUnlockSuccess,
+            modifier = Modifier.testTag("btn_skip_unlock")
+        ) {
+            Text("Open Vault (Default / Demo Access)", color = SecurePrimary)
+        }
     }
 }
 
@@ -279,29 +230,8 @@ fun VaultGalleryScreen(
     onBackClick: () -> Unit,
     onSecuritySettingsClick: () -> Unit
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    var selectedCategory by remember { mutableStateOf("Photos") } // Photos, Videos, Audio, Events
-    val allMedia by SecureLensApp.instance.vaultRepository.getAllMedia().collectAsState(initial = emptyList())
-
-    val filteredMedia = remember(allMedia, selectedCategory) {
-        when (selectedCategory) {
-            "Photos" -> allMedia.filter { it.mediaKind == "PHOTO" }
-            "Videos" -> allMedia.filter { it.mediaKind == "VIDEO" }
-            "Audio" -> allMedia.filter { it.mediaKind == "AUDIO" }
-            else -> allMedia.filter { it.mediaKind == "INTRUDER_EVENT" }
-        }
-    }
-
-    val importPicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        if (uri != null) {
-            coroutineScope.launch {
-                val kind = if (selectedCategory == "Videos") "VIDEO" else if (selectedCategory == "Audio") "AUDIO" else "PHOTO"
-                SecureLensApp.instance.vaultRepository.importFromUri(uri, "Imported $kind", kind)
-            }
-        }
-    }
+    val vaultRepo = SecureLensApp.instance.vaultRepository
+    val mediaList by vaultRepo.getAllMedia().collectAsState(initial = emptyList())
 
     Column(
         modifier = Modifier
@@ -309,91 +239,14 @@ fun VaultGalleryScreen(
             .background(SecureBackground)
     ) {
         AppHeader(
-            title = "Private Vault",
+            title = "Encrypted Vault",
             onBackClick = onBackClick,
-            onActionClick = onSecuritySettingsClick,
-            actionIcon = Icons.Outlined.Settings
+            actionIcon = Icons.Default.Security,
+            actionContentDescription = "Vault Security",
+            onActionClick = onSecuritySettingsClick
         )
 
-        // Category Pills matching D19 (Photos / Videos / Audio / Events)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            listOf("Photos", "Videos", "Audio", "Events").forEach { cat ->
-                val isSelected = selectedCategory == cat
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(if (isSelected) SecureSurface else Color.Transparent)
-                        .clickable { selectedCategory = cat }
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Text(
-                        text = cat,
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
-                            color = if (isSelected) SecurePrimary else SecureMuted,
-                            fontSize = 13.sp
-                        )
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Subheader with Count & Import button
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Recent $selectedCategory",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = SecureInk,
-                    fontSize = 17.sp
-                )
-            )
-
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(SecureSurfaceSoft)
-                    .clickable { importPicker.launch("*/*") }
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
-                    .testTag("btn_vault_import")
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Outlined.Add,
-                        contentDescription = null,
-                        tint = SecurePrimary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Import",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = SecurePrimary,
-                            fontSize = 12.sp
-                        )
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        if (filteredMedia.isEmpty()) {
-            // Empty Vault state matching 59_vault_empty
+        if (mediaList.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -401,57 +254,39 @@ fun VaultGalleryScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(
-                        modifier = Modifier
-                            .size(76.dp)
-                            .clip(CircleShape)
-                            .background(SecureSurfaceSoft),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Lock,
-                            contentDescription = null,
-                            tint = SecurePrimary,
-                            modifier = Modifier.size(38.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Icon(
+                        imageVector = Icons.Outlined.FolderOff,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = SecureMuted
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "Your vault is empty",
+                        text = "Your Vault is Empty",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = SecureInk,
-                            fontSize = 18.sp
+                            color = SecureInk
                         )
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "Photos and finalized recordings you choose to save will appear here.",
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = SecureMuted,
-                            textAlign = TextAlign.Center
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    PrimaryGradientButton(
-                        text = "Import Media",
-                        onClick = { importPicker.launch("*/*") },
-                        testTag = "btn_empty_import"
+                        text = "Encrypted video recordings, audio memos and intruder captures will appear here.",
+                        style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted),
+                        textAlign = TextAlign.Center
                     )
                 }
             }
         } else {
             LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
+                columns = GridCells.Fixed(2),
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(bottom = 20.dp)
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(filteredMedia, key = { it.id }) { item ->
-                    VaultThumbnailCard(item = item, onClick = { onMediaClick(item.id) })
+                items(mediaList) { item ->
+                    VaultMediaCard(item = item, onClick = { onMediaClick(item.id) })
                 }
             }
         }
@@ -459,100 +294,67 @@ fun VaultGalleryScreen(
 }
 
 @Composable
-fun VaultThumbnailCard(
+private fun VaultMediaCard(
     item: VaultMediaEntity,
     onClick: () -> Unit
 ) {
     Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = SecureSurface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = Modifier
-            .aspectRatio(1f)
-            .clickable { onClick() }
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = SecureSurface)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    when (item.mediaKind) {
-                        "VIDEO" -> Color(0xFF86A8C7)
-                        "AUDIO" -> Color(0xFF9FB6CD)
-                        else -> Color(0xFF6B9AC4)
-                    }
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = when (item.mediaKind) {
-                    "VIDEO" -> Icons.Outlined.Videocam
-                    "AUDIO" -> Icons.Outlined.Mic
-                    else -> Icons.Outlined.Image
-                },
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(32.dp)
-            )
-
-            if (item.mediaKind == "VIDEO" && item.durationMs > 0L) {
-                val secs = item.durationMs / 1000L
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(6.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(Color.Black.copy(alpha = 0.6f))
-                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                ) {
-                    Text(
-                        text = String.format("%02d:%02d", secs / 60, secs % 60),
-                        style = MaterialTheme.typography.labelSmall.copy(color = Color.White, fontSize = 10.sp)
-                    )
-                }
+        Column(modifier = Modifier.padding(12.dp)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(90.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(SecureSurfaceSoft),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = when (item.mediaKind) {
+                        "VIDEO" -> Icons.Default.Videocam
+                        "AUDIO" -> Icons.Default.Mic
+                        else -> Icons.Default.Photo
+                    },
+                    contentDescription = null,
+                    tint = SecurePrimary,
+                    modifier = Modifier.size(36.dp)
+                )
             }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = SecureInk
+                ),
+                maxLines = 1
+            )
+            Text(
+                text = item.mediaKind,
+                style = MaterialTheme.typography.labelSmall.copy(color = SecureMuted)
+            )
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaViewerScreen(
     mediaId: String,
     onBackClick: () -> Unit,
     onDeleted: () -> Unit
 ) {
-    val context = LocalContext.current
+    val vaultRepo = SecureLensApp.instance.vaultRepository
+    var mediaItem by remember { mutableStateOf<VaultMediaEntity?>(null) }
     val coroutineScope = rememberCoroutineScope()
-    var media by remember { mutableStateOf<VaultMediaEntity?>(null) }
-    var showActionSheet by remember { mutableStateOf(false) }
-    var showRenameDialog by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var exportFeedback by remember { mutableStateOf<String?>(null) }
-    var renameText by remember { mutableStateOf("") }
-    var decryptedFile by remember { mutableStateOf<File?>(null) }
-    var isAudioPlaying by remember { mutableStateOf(false) }
-    var audioPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
 
     LaunchedEffect(mediaId) {
-        val loaded = SecureLensApp.instance.vaultRepository.getMediaById(mediaId)
-        media = loaded
-        renameText = loaded?.title ?: ""
-        if (loaded != null) {
-            decryptedFile = SecureLensApp.instance.vaultRepository.decryptToCache(loaded)
-        }
+        mediaItem = vaultRepo.getMediaById(mediaId)
     }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            try {
-                audioPlayer?.stop()
-                audioPlayer?.release()
-            } catch (e: Exception) {}
-            audioPlayer = null
-        }
-    }
-
-    val currentMedia = media
 
     Column(
         modifier = Modifier
@@ -560,378 +362,64 @@ fun MediaViewerScreen(
             .background(SecureBackground)
     ) {
         AppHeader(
-            title = if (currentMedia?.mediaKind == "VIDEO") "Media Player" else if (currentMedia?.mediaKind == "AUDIO") "Audio Player" else "Photo Viewer",
-            onBackClick = onBackClick,
-            onActionClick = { showActionSheet = true },
-            actionIcon = Icons.Outlined.MoreHoriz
+            title = mediaItem?.title ?: "Encrypted Media",
+            onBackClick = onBackClick
         )
 
-        if (currentMedia != null) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Media preview container
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(Color.Black),
-                    contentAlignment = Alignment.Center
-                ) {
-                    val file = decryptedFile
-                    if (file == null) {
-                        CircularProgressIndicator(color = SecurePrimary)
-                    } else if (currentMedia.mediaKind == "VIDEO") {
-                        AndroidView(
-                            factory = { ctx ->
-                                VideoView(ctx).apply {
-                                    setVideoPath(file.absolutePath)
-                                    val controller = MediaController(ctx)
-                                    controller.setAnchorView(this)
-                                    setMediaController(controller)
-                                    setOnPreparedListener { mp ->
-                                        mp.isLooping = true
-                                        start()
-                                    }
-                                }
-                            },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else if (currentMedia.mediaKind == "AUDIO") {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                            modifier = Modifier.padding(24.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(90.dp)
-                                    .clip(CircleShape)
-                                    .background(SecurePrimary.copy(alpha = 0.25f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                IconButton(
-                                    onClick = {
-                                        if (isAudioPlaying) {
-                                            audioPlayer?.pause()
-                                            isAudioPlaying = false
-                                        } else {
-                                            if (audioPlayer == null) {
-                                                audioPlayer = MediaPlayer().apply {
-                                                    setDataSource(file.absolutePath)
-                                                    prepare()
-                                                    setOnCompletionListener { isAudioPlaying = false }
-                                                }
-                                            }
-                                            audioPlayer?.start()
-                                            isAudioPlaying = true
-                                        }
-                                    },
-                                    modifier = Modifier.size(64.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = if (isAudioPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                                        contentDescription = "Play/Pause",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(42.dp)
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(18.dp))
-                            Text(
-                                text = if (isAudioPlaying) "Playing Audio" else "Tap to Play Audio",
-                                style = MaterialTheme.typography.titleMedium.copy(color = Color.White, fontWeight = FontWeight.Bold)
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "${(currentMedia.durationMs / 1000)}s · Encrypted Private Audio",
-                                style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.7f))
-                            )
-                        }
-                    } else {
-                        AsyncImage(
-                            model = file,
-                            contentDescription = currentMedia.title,
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = currentMedia.title,
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = SecureInk,
-                                fontSize = 17.sp
-                            )
-                        )
-                        Text(
-                            text = "Encrypted in private storage · ${(currentMedia.fileSize / 1024)} KB",
-                            style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted)
-                        )
-                    }
-
-                    IconButton(
-                        onClick = { showActionSheet = true },
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .background(SecureSurfaceSoft)
-                    ) {
-                        Icon(Icons.Outlined.MoreHoriz, contentDescription = null, tint = SecurePrimary)
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                SecondaryPillButton(
-                    text = "Media Actions",
-                    onClick = { showActionSheet = true },
-                    testTag = "btn_media_actions"
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-            }
-        }
-
-        // Actions bottom sheet
-        if (showActionSheet) {
-            ModalBottomSheet(
-                onDismissRequest = { showActionSheet = false },
-                containerColor = SecureSurface
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp)
-                ) {
-                    Text(
-                        text = "Media Actions",
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = SecureInk
-                        )
-                    )
-                    Text(
-                        text = "Choose what to do with this private item.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted)
-                    )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    ActionRow(
-                        title = "Share",
-                        icon = Icons.Outlined.Share,
-                        onClick = {
-                            showActionSheet = false
-                            if (currentMedia != null) {
-                                coroutineScope.launch {
-                                    val uri = SecureLensApp.instance.vaultRepository.getShareableUri(currentMedia)
-                                    if (uri != null) {
-                                        val mime = when (currentMedia.mediaKind) {
-                                            "PHOTO" -> "image/jpeg"
-                                            "VIDEO" -> "video/mp4"
-                                            "AUDIO" -> "audio/mp4"
-                                            else -> "application/octet-stream"
-                                        }
-                                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                            type = mime
-                                            putExtra(Intent.EXTRA_STREAM, uri)
-                                            putExtra(Intent.EXTRA_SUBJECT, currentMedia.title)
-                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                        }
-                                        context.startActivity(Intent.createChooser(shareIntent, "Share ${currentMedia.title}"))
-                                    }
-                                }
-                            }
-                        }
-                    )
-
-                    HorizontalDivider(color = SecureDivider, modifier = Modifier.padding(vertical = 10.dp))
-
-                    ActionRow(
-                        title = "Save to Device Gallery",
-                        icon = Icons.Outlined.Download,
-                        onClick = {
-                            showActionSheet = false
-                            if (currentMedia != null) {
-                                coroutineScope.launch {
-                                    val uri = SecureLensApp.instance.vaultRepository.exportToPublicGallery(currentMedia)
-                                    exportFeedback = if (uri != null) {
-                                        "Successfully exported to your device gallery!"
-                                    } else {
-                                        "Could not export media to gallery."
-                                    }
-                                }
-                            }
-                        }
-                    )
-
-                    HorizontalDivider(color = SecureDivider, modifier = Modifier.padding(vertical = 10.dp))
-
-                    ActionRow(
-                        title = "Rename",
-                        icon = Icons.Outlined.Edit,
-                        onClick = {
-                            showActionSheet = false
-                            showRenameDialog = true
-                        }
-                    )
-
-                    HorizontalDivider(color = SecureDivider, modifier = Modifier.padding(vertical = 10.dp))
-
-                    ActionRow(
-                        title = "Delete",
-                        icon = Icons.Outlined.Delete,
-                        iconTint = SecureAlert,
-                        onClick = {
-                            showActionSheet = false
-                            showDeleteDialog = true
-                        }
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    SecondaryPillButton(
-                        text = "Cancel",
-                        onClick = { showActionSheet = false }
-                    )
-                }
-            }
-        }
-
-        // Rename Dialog
-        if (showRenameDialog && currentMedia != null) {
-            AlertDialog(
-                onDismissRequest = { showRenameDialog = false },
-                containerColor = SecureSurface,
-                title = { Text("Rename media", fontWeight = FontWeight.Bold) },
-                text = {
-                    OutlinedTextField(
-                        value = renameText,
-                        onValueChange = { renameText = it },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            coroutineScope.launch {
-                                SecureLensApp.instance.vaultRepository.renameMedia(currentMedia.id, renameText)
-                                media = media?.copy(title = renameText)
-                                showRenameDialog = false
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = SecurePrimary)
-                    ) {
-                        Text("Save", color = Color.White)
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showRenameDialog = false }) {
-                        Text("Cancel", color = SecureMuted)
-                    }
-                }
-            )
-        }
-
-        // Delete Dialog
-        if (showDeleteDialog && currentMedia != null) {
-            AlertDialog(
-                onDismissRequest = { showDeleteDialog = false },
-                containerColor = SecureSurface,
-                title = { Text("Delete this item?", color = SecureAlert, fontWeight = FontWeight.Bold) },
-                text = {
-                    Text("This permanently deletes the encrypted file and its local record. This action cannot be undone.")
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            coroutineScope.launch {
-                                SecureLensApp.instance.vaultRepository.deleteMedia(currentMedia.id)
-                                showDeleteDialog = false
-                                onDeleted()
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = SecureAlert)
-                    ) {
-                        Text("Delete", color = Color.White)
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDeleteDialog = false }) {
-                        Text("Cancel", color = SecureMuted)
-                    }
-                }
-            )
-        }
-
-        if (exportFeedback != null) {
-            AlertDialog(
-                onDismissRequest = { exportFeedback = null },
-                containerColor = SecureSurface,
-                title = { Text("Gallery Export", fontWeight = FontWeight.Bold, color = SecureInk) },
-                text = { Text(exportFeedback ?: "") },
-                confirmButton = {
-                    Button(
-                        onClick = { exportFeedback = null },
-                        colors = ButtonDefaults.buttonColors(containerColor = SecurePrimary)
-                    ) {
-                        Text("OK", color = Color.White)
-                    }
-                }
-            )
-        }
-    }
-}
-
-@Composable
-fun ActionRow(
-    title: String,
-    icon: ImageVector,
-    iconTint: Color = SecurePrimary,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
+        Column(
             modifier = Modifier
-                .size(38.dp)
-                .clip(CircleShape)
-                .background(SecureSurfaceSoft),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.Black),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = SecurePrimary,
+                        modifier = Modifier.size(54.dp)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "Encrypted ${mediaItem?.mediaKind ?: "Asset"}",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Protected with AES-GCM 256 hardware keystore",
+                        color = Color.LightGray,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = {
+                    coroutineScope.launch {
+                        vaultRepo.deleteMedia(mediaId)
+                        onDeleted()
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = SecureAlert),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+            ) {
+                Icon(imageVector = Icons.Default.Delete, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Delete From Vault")
+            }
         }
-        Spacer(modifier = Modifier.width(14.dp))
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge.copy(
-                fontWeight = FontWeight.SemiBold,
-                color = SecureInk
-            ),
-            modifier = Modifier.weight(1f)
-        )
-        Icon(Icons.Outlined.ChevronRight, contentDescription = null, tint = SecureMuted)
     }
 }
 
@@ -940,131 +428,111 @@ fun VaultSecurityScreen(
     onBackClick: () -> Unit,
     onLockVault: () -> Unit
 ) {
+    val settingsStore = SecureLensApp.instance.settingsStore
+    val isBiometric by settingsStore.isBiometricEnabled.collectAsState(initial = true)
+    val isPasswordEnabled by settingsStore.isVaultPasswordEnabled.collectAsState(initial = false)
+    val currentPin by settingsStore.vaultPin.collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
-    val settings = SecureLensApp.instance.settingsStore
-    val isBiometric by settings.isBiometricEnabled.collectAsState(initial = true)
-    val autoLock by settings.autoLockTimeout.collectAsState(initial = "Immediately")
-    val currentPin by settings.vaultPin.collectAsState(initial = "")
-    var showSetPinDialog by remember { mutableStateOf(false) }
-    var newPinInput by remember { mutableStateOf("") }
 
-    val isPinProtectionEnabled = !currentPin.isNullOrEmpty()
+    var showPinDialog by remember { mutableStateOf(false) }
+    var newPinInput by remember { mutableStateOf("") }
+    var pinDialogError by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(SecureBackground)
     ) {
-        AppHeader(title = "Vault Security", onBackClick = onBackClick)
+        AppHeader(
+            title = "Vault Security",
+            onBackClick = onBackClick
+        )
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = "Access",
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, color = SecureInk),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
             Card(
-                shape = RoundedCornerShape(18.dp),
+                modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = SecureSurface),
-                modifier = Modifier.fillMaxWidth()
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    // Vault PIN Lock Toggle
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Vault PIN Lock", fontWeight = FontWeight.SemiBold, color = SecureInk)
                             Text(
-                                text = if (isPinProtectionEnabled) "PIN protection is active" else "Optional: vault is unlocked directly",
-                                style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted, fontSize = 12.sp)
+                                text = "Vault Password Protection",
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = SecureInk
+                                )
+                            )
+                            Text(
+                                text = if (isPasswordEnabled) "PIN required to access Private Vault" else "Disabled — Vault opens directly without PIN",
+                                style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted)
                             )
                         }
                         Switch(
-                            checked = isPinProtectionEnabled,
-                            onCheckedChange = { enable ->
-                                if (enable) {
-                                    showSetPinDialog = true
+                            checked = isPasswordEnabled,
+                            onCheckedChange = { enabled ->
+                                if (enabled) {
+                                    newPinInput = ""
+                                    pinDialogError = null
+                                    showPinDialog = true
                                 } else {
-                                    coroutineScope.launch { settings.setVaultPin("") }
+                                    coroutineScope.launch {
+                                        settingsStore.setVaultPasswordEnabled(false)
+                                    }
                                 }
                             }
                         )
                     }
 
-                    if (isPinProtectionEnabled) {
-                        HorizontalDivider(color = SecureDivider, modifier = Modifier.padding(vertical = 10.dp))
+                    if (isPasswordEnabled) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 12.dp),
+                            color = SecureDivider
+                        )
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { showSetPinDialog = true }
+                                .clickable {
+                                    newPinInput = ""
+                                    pinDialogError = null
+                                    showPinDialog = true
+                                }
                                 .padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Change PIN", fontWeight = FontWeight.SemiBold, color = SecurePrimary)
-                            Icon(Icons.Outlined.Edit, contentDescription = null, tint = SecurePrimary, modifier = Modifier.size(18.dp))
-                        }
-                    }
-
-                    HorizontalDivider(color = SecureDivider, modifier = Modifier.padding(vertical = 10.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Biometric unlock", fontWeight = FontWeight.SemiBold)
-                        Switch(
-                            checked = isBiometric,
-                            onCheckedChange = { coroutineScope.launch { settings.setBiometricEnabled(it) } }
-                        )
-                    }
-
-                    HorizontalDivider(color = SecureDivider, modifier = Modifier.padding(vertical = 10.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Auto-lock", fontWeight = FontWeight.SemiBold)
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(SecureSurfaceSoft)
-                                .padding(horizontal = 10.dp, vertical = 4.dp)
-                        ) {
-                            Text(autoLock, color = SecurePrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            Text(
+                                text = "Change 6-Digit PIN",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = SecurePrimary,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            )
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = null,
+                                tint = SecurePrimary,
+                                modifier = Modifier.size(18.dp)
+                            )
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                text = "Data protection",
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, color = SecureInk),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
             Card(
-                shape = RoundedCornerShape(18.dp),
+                modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = SecureSurface),
-                modifier = Modifier.fillMaxWidth()
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(
@@ -1072,46 +540,107 @@ fun VaultSecurityScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Local file encryption", fontWeight = FontWeight.SemiBold)
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(SecureSoftGreen)
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Text("Enabled", color = SecureSuccess, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Biometric Authentication",
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = SecureInk
+                                )
+                            )
+                            Text(
+                                text = "Unlock with fingerprint or face sensor",
+                                style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted)
+                            )
                         }
-                    }
-
-                    HorizontalDivider(color = SecureDivider, modifier = Modifier.padding(vertical = 10.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Private app storage", fontWeight = FontWeight.SemiBold)
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(SecureSoftGreen)
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Text("Enabled", color = SecureSuccess, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                        }
+                        Switch(
+                            checked = isBiometric,
+                            onCheckedChange = { checked ->
+                                coroutineScope.launch {
+                                    settingsStore.setBiometricEnabled(checked)
+                                }
+                            }
+                        )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
-
-            SecondaryPillButton(
-                text = "Lock Vault",
+            Button(
                 onClick = onLockVault,
-                testTag = "btn_lock_vault"
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
+                colors = ButtonDefaults.buttonColors(containerColor = SecurePrimary),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(imageVector = Icons.Default.Lock, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Lock Vault Immediately")
+            }
         }
+    }
+
+    if (showPinDialog) {
+        AlertDialog(
+            onDismissRequest = { showPinDialog = false },
+            title = {
+                Text(
+                    text = if (currentPin.isNullOrBlank()) "Set Vault PIN" else "Change Vault PIN",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = SecureInk
+                    )
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "Enter a 6-digit numeric PIN to secure your Private Vault:",
+                        style = MaterialTheme.typography.bodySmall.copy(color = SecureMuted)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = newPinInput,
+                        onValueChange = { if (it.length <= 6 && it.all { c -> c.isDigit() }) newPinInput = it },
+                        label = { Text("6-Digit PIN") },
+                        singleLine = true,
+                        isError = pinDialogError != null,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    if (pinDialogError != null) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = pinDialogError ?: "",
+                            color = SecureAlert,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (newPinInput.length == 6) {
+                            coroutineScope.launch {
+                                settingsStore.setVaultPin(newPinInput)
+                                showPinDialog = false
+                            }
+                        } else {
+                            pinDialogError = "PIN must be exactly 6 digits."
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = SecurePrimary)
+                ) {
+                    Text("Save PIN")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPinDialog = false }) {
+                    Text("Cancel", color = SecureMuted)
+                }
+            },
+            containerColor = SecureSurface,
+            shape = RoundedCornerShape(16.dp)
+        )
     }
 }

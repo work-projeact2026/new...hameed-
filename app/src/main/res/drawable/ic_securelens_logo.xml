@@ -1,0 +1,37 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+
+    <!-- Left Half of Shield: Solid Deep Blue -->
+    <path
+        android:fillColor="#2563EB"
+        android:pathData="M48,8L14,24v24c0,22.2 14.5,42.9 34,48V8z" />
+
+    <!-- Right Half of Shield: Dynamic Lighter Blue -->
+    <path
+        android:fillColor="#3B82F6"
+        android:pathData="M48,8v88c19.5,-5.1 34,-25.8 34,-48V24L48,8z" />
+
+    <!-- Left Inner Accent Line / Cutout -->
+    <path
+        android:fillColor="#1D4ED8"
+        android:pathData="M48,22L24,33.3v17c0,15.7 10.3,30.4 24,34V22z" />
+
+    <!-- Right Inner Accent Line / Cutout -->
+    <path
+        android:fillColor="#60A5FA"
+        android:pathData="M48,22v62.3c13.7,-3.6 24,-18.3 24,-34v-17L48,22z" />
+
+    <!-- Center Security Emblem / Core Shield Highlight -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.9"
+        android:pathData="M48,34l-14,7v10.5c0,9.7 6.4,18.8 14,21c7.6,-2.2 14,-11.3 14,-21V41L48,34z" />
+
+    <!-- Core Blue Emblem Inner -->
+    <path
+        android:fillColor="#2563EB"
+        android:pathData="M48,40l-9,4.5v6.8c0,6.3 4.1,12.1 9,13.5c4.9,-1.4 9,-7.2 9,-13.5v-6.8L48,40z" />
+</vector>
